@@ -1,0 +1,2 @@
+# Add run script to {{= fp.blockArgs[1] }}
+COPY run-java.sh {{= fp.blockArgs[1] }}
