@@ -12,11 +12,11 @@ directly or it can be easily included in various build systems:
 Maven builds can declare a dependency on
 
 ```xml
-<plugin>
+<dependency>
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-</plugin>
+</dependency>
 ```
 
 Then, within your code the script can be obtained with
