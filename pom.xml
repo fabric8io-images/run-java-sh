@@ -17,7 +17,7 @@
   <build>
     <resources>
       <resource>
-        <directory>blocks</directory>
+        <directory>fish-pepper</directory>
       </resource>
     </resources>
 
