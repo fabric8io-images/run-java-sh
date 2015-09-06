@@ -1,3 +1,5 @@
+**DEMO**
+
 ## run-java.sh
 
 `run-java.sh` is a universal startup script for Java
