@@ -42,7 +42,12 @@ public class RunShLoader
      * @param destination where to copy run script
      */
     public static void copyRunScript(File destination) throws IOException {
-        FileUtils.copyInputStreamToFile(getInputStream(LOCATION_RUN_SCRIPT),destination);
+        FileWriter out = new FileWriter(destination);
+        try {
+            IOUtils.copy(getInputStream(LOCATION_RUN_SCRIPT), out);
+        } finally {
+            out.close();
+        }
     }
 
     // ==================================================================================
