@@ -50,7 +50,7 @@ need to add the following refernce to the main configuration
 blocks:
   - type: "git"
     url: "https://github.com/fabric8io/run-java-sh.git"
-    path: "blocks"
+    path: "fish-pepper"
 ```
 
 From within the Docker templates you then can reference this block as
