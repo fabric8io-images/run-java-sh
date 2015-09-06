@@ -15,7 +15,7 @@ Maven builds can declare a dependency on
 <dependency>
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>0.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
