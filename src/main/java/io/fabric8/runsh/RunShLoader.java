@@ -2,7 +2,6 @@ package io.fabric8.runsh;
 
 import java.io.*;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -15,7 +14,7 @@ public class RunShLoader
         System.out.println(getRunScript());
     }
 
-    public static final String LOCATION_RUN_SCRIPT = "/run-java-sh/files/run-java.sh";
+    public static final String LOCATION_RUN_SCRIPT = "/run-java-sh/fp-files/run-java.sh";
     public static final String LOCATION_README = "/run-java-sh/readme.md";
 
     /**
