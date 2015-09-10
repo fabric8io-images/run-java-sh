@@ -4,7 +4,7 @@
 applications. It can be influenced by setting the environment
 variables described below.
 
-[run-java.sh](blocks/run-java-sh/files/run-java.sh) can be used
+[run-java.sh](fish-pepper/run-java-sh/fp-files/run-java.sh) can be used
 directly or it can be easily included in various build systems:
 
 ### Maven Builds
