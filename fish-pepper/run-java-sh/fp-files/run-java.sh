@@ -10,13 +10,12 @@
 # ==========================================================
 
 # Global error var set when error occurs in a subshell
-ERROR=""
-
 
 function check_error() {
-  if [ "x$ERROR" != x ]; then
-     echo ${ERROR} >2
-     exit 1
+  local msg=$1
+  if echo $msg | grep -qF "^ERROR:"; then
+    echo $msg
+    exit 1
   fi
 }
 
@@ -41,10 +40,9 @@ function auto_detect_jar_file() {
       exit 0
     fi
     cd ${old_dir}
-    ERROR="Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and ${nr_jars} found in ${dir} (1 expected)"
-    exit 1
+    echo "ERROR: Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and ${nr_jars} found in ${dir} (1 expected)"
   else
-    ERROR="No directory ${dir} found for autodetection"
+    echo "ERROR: No directory ${dir} found for autodetection"
   fi
 }
 
@@ -57,7 +55,7 @@ function get_jar_file() {
       return
     fi
   done
-  ERROR="No ${JAVA_APP_JAR} found in $*"
+  echo "ERROR: No ${JAVA_APP_JAR} found in $*"
 }
 
 function load_env() {
@@ -85,10 +83,12 @@ function load_env() {
   # Workdir default to JAVA_APP_DIR
   export JAVA_WORK_DIR=${JAVA_WORK_DIR:-${JAVA_APP_DIR}}
   if [ -z ${JAVA_MAIN_CLASS} ] && [ -z ${JAVA_APP_JAR} ]; then
-    JAVA_APP_JAR="$(auto_detect_jar_file ${JAVA_APP_DIR})" || check_error
+    JAVA_APP_JAR="$(auto_detect_jar_file ${JAVA_APP_DIR})"
+    check_error "${JAVA_APP_JAR}"
   fi
   if [ "x${JAVA_APP_JAR}" != x ]; then
-    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})" || check_error
+    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})"
+    check_error "${jar}"
     export JAVA_APP_JAR=${jar}
   else
     export JAVA_MAIN_CLASS
@@ -105,7 +105,7 @@ function java_options_from_cmd() {
 
 # Echo the proper options to switch on debugging
 function debug_options() {
-  if [ "x$JAVA_ENABLE_DEBUG" != "x" ]; then
+  if [ "x${JAVA_ENABLE_DEBUG}" != "x" ]; then
     local debug_port=${JAVA_DEBUG_PORT:-5005}
     echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug_port}"
   fi
