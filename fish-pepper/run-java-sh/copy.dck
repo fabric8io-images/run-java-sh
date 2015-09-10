@@ -1,2 +1,4 @@
-# Add run script to {{= fp.blockOpts.dest }}
-COPY run-java.sh {{= fp.blockOpts.dest }}
+{{
+  var destPath = fp.blockOpts.dest || "/run-java.sh";
+}}# Add run script as {{= destPath }}
+COPY run-java.sh {{= destPath }}
