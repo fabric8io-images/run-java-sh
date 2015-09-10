@@ -9,6 +9,17 @@
 # Licensed under the APL V2
 # ==========================================================
 
+# Global error var set when error occurs in a subshell
+ERROR=""
+
+
+function check_error() {
+  if [ "x$ERROR" != x ]; then
+     echo ${ERROR} >2
+     exit 1
+  fi
+}
+
 function get_script_dir() {
   # Default is current directory
   local dir=`dirname "$0"`
@@ -22,11 +33,19 @@ function auto_detect_jar_file() {
 
   # Filter out temporary jars from the shade plugin which start with 'original-'
   local old_dir=$(pwd)
-  cd ${dir} || ( echo "No directory ${dir} found" && exit 1 )
-  if [ `ls *.jar 2>/dev/null | grep -v '^original-' | wc -l | tr -d '[[:space:]]'` = 1 ]; then
-    ls *.jar | grep -v '^original-'
+  cd ${dir}
+  if [ $? = 0 ]; then
+    local nr_jars=`ls *.jar 2>/dev/null | grep -v '^original-' | wc -l | tr -d '[[:space:]]'`
+    if [ ${nr_jars} = 1 ]; then
+      ls *.jar | grep -v '^original-'
+      exit 0
+    fi
+    cd ${old_dir}
+    ERROR="Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and ${nr_jars} found in ${dir} (1 expected)"
+    exit 1
+  else
+    ERROR="No directory ${dir} found for autodetection"
   fi
-  cd ${old_dir}
 }
 
 function get_jar_file() {
@@ -38,8 +57,7 @@ function get_jar_file() {
       return
     fi
   done
-  echo "No ${JAVA_APP_JAR} found in $*"
-  exit 1
+  ERROR="No ${JAVA_APP_JAR} found in $*"
 }
 
 function load_env() {
@@ -67,15 +85,10 @@ function load_env() {
   # Workdir default to JAVA_APP_DIR
   export JAVA_WORK_DIR=${JAVA_WORK_DIR:-${JAVA_APP_DIR}}
   if [ -z ${JAVA_MAIN_CLASS} ] && [ -z ${JAVA_APP_JAR} ]; then
-
-    JAVA_APP_JAR=$(auto_detect_jar_file ${JAVA_APP_DIR}) || ( echo ${JAVA_APP_JAR} && exit 1 )
-    if [ "x${JAVA_APP_JAR}" = x ]; then
-      echo "Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and exactly one jar-file expected in ${script_dir}"
-      exit 1
-    fi
+    JAVA_APP_JAR="$(auto_detect_jar_file ${JAVA_APP_DIR})" || check_error
   fi
   if [ "x${JAVA_APP_JAR}" != x ]; then
-    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})" || ( echo ${jar} && exit 1 )
+    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})" || check_error
     export JAVA_APP_JAR=${jar}
   else
     export JAVA_MAIN_CLASS
