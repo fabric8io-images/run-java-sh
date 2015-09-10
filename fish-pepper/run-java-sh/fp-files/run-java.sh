@@ -6,11 +6,10 @@
 # Source and Documentation can be found
 # at https://github.com/fabric8io/run-java-sh
 #
-# Licensed under the APL V2
 # ==========================================================
 
-# Global error var set when error occurs in a subshell
 
+# Error is indicated with a prefix in the return value
 function check_error() {
   local msg=$1
   if echo ${msg} | grep -q "^ERROR:"; then
@@ -19,6 +18,7 @@ function check_error() {
   fi
 }
 
+# The full qualified directory where this script is located
 function get_script_dir() {
   # Default is current directory
   local dir=`dirname "$0"`
@@ -46,16 +46,26 @@ function auto_detect_jar_file() {
   fi
 }
 
+# Check directories for a jar file
 function get_jar_file() {
   local jar=$1
   shift;
-  for dir in $*; do
-    if [ -f "${dir}/$jar" ]; then
-      echo "${dir}/$jar"
-      return
+
+  if [ "${jar:0:1}" = "/" ]; then
+    if [ -f ${jar} ]; then
+      echo ${jar}
+    else
+      echo "ERROR: No such file ${jar}"
     fi
-  done
-  echo "ERROR: No ${JAVA_APP_JAR} found in $*"
+  else
+    for dir in $*; do
+      if [ -f "${dir}/$jar" ]; then
+        echo "${dir}/$jar"
+        return
+      fi
+    done
+  fi
+  echo "ERROR: No ${jar} found in $*"
 }
 
 function load_env() {
