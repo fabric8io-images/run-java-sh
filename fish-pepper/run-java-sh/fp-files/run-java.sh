@@ -64,8 +64,8 @@ function get_jar_file() {
         return
       fi
     done
+    echo "ERROR: No ${jar} found in $*"
   fi
-  echo "ERROR: No ${jar} found in $*"
 }
 
 function load_env() {
