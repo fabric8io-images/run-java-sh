@@ -165,10 +165,10 @@ function startup() {
 
   local args
   cd ${JAVA_WORK_DIR}
-  if [ "x$JAVA_APP_JAR" != x ] ; then
-     args="-jar ${JAVA_APP_JAR}"
-  else
+  if [ "x$JAVA_MAIN_CLASS" != x ] ; then
      args="${JAVA_MAIN_CLASS}"
+  else
+     args="-jar ${JAVA_APP_JAR}"
   fi
   exec $(get_exec_args) java $(get_java_options) -cp "$(get_classpath)" ${args} $*
 }
