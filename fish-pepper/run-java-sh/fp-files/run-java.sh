@@ -148,7 +148,7 @@ function get_exec_args() {
     # Not all shells support the 'exec -a newname' syntax..
     `exec -a test true 2>/dev/null`
     if [ "$?" = 0 ] ; then
-      echo "-a ${JAVA_APP_NAME}"
+      echo "-a '${JAVA_APP_NAME}'"
     else
       # Lets switch to bash if you have it installed...
       if [ -f "/bin/bash" ] ; then
