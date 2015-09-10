@@ -1,69 +1,161 @@
 #!/bin/sh
 
-java_app_dir=${JAVA_APP_DIR}
-if [ -z $java_app_dir ]; then
+# ==========================================================
+# Generic run script for running arbitrary Java applications
+#
+# Source and Documentation can be found
+# at https://github.com/fabric8io/run-java-sh
+#
+# Licensed under the APL V2
+# ==========================================================
+
+function get_script_dir() {
   # Default is current directory
-  dir=`dirname "$0"`
-  java_app_dir=`cd "${dir}" ; pwd`
-fi
+  local dir=`dirname "$0"`
+  local full_dir=`cd "${dir}" ; pwd`
+  echo ${full_dir}
+}
 
-# Read in configuration if given
-if [ -f "${java_app_dir}/setenv.sh" ]; then
-   . ${java_app_dir}/setenv.sh
-fi
+# Try hard to find a sane default jar-file
+function auto_detect_jar_file() {
+  local dir=$1
 
-java_options=${JAVA_OPTIONS}
-which agent-bond-opts >/dev/null 2>&1
-if [ $? = 0 ]; then
-  java_options="${java_options} $(agent-bond-opts)"
-fi
-if [ "x$JAVA_ENABLE_DEBUG" != "x" ]; then
-    debug_port=${JAVA_DEBUG_PORT}:-5005}
-    java_options="${java_options} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug_port}"
-fi
-work_dir=${JAVA_WORKDIR:-${app_dir}}
+  # Filter out temporary jars from the shade plugin which start with 'original-'
+  local old_dir=$(pwd)
+  cd ${dir} || ( echo "No directory ${dir} found" && exit 1 )
+  if [ `ls *.jar 2>/dev/null | grep -v '^original-' | wc -l | xargs` = 1 ]; then
+    ls *.jar | grep -v '^original-'
+  fi
+  cd ${old_dir}
+}
 
-if [ -z "${JAVA_CLASSPATH}" ]; then
-   if [ -f "${java_app_dir}/classpath" ]; then
-     classpath=`cat "${java_app_dir}/classpath"`
-   else
-     classpath="classes:${java_app_dir}/*"
-   fi
-else
-   classpath=${JAVA_CLASSPATH}
-fi
+function get_jar_file() {
+  local jar=$1
+  shift;
+  for dir in $*; do
+    if [ -f "${dir}/$jar" ]; then
+      echo "${dir}/$jar"
+      return
+    fi
+  done
+  echo "No JAR File $jar found"
+  exit 1
+}
 
-# Try hard to find a sane default if no main class and no main class
-# is specified explicitely
-if [ -z $JAVA_MAIN_CLASS ] && [ -z $JAVA_APP_JAR ]; then
-   # Filter out temporary jars from the shade plugin which start with 'original-'
-   nr_jars=`ls $java_app_dir/*.jar | grep -v '/original-' | wc -l | tr -d '[[:space:]]'`
-   if [ $nr_jars = 1 ]; then
-     jar_file=`ls $java_app_dir/*.jar | grep -v '/original-'`
-     cp_ext="${java_app_dir}"
-   else
-     echo "Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and ${nr_jars} jar files are in ${java_app_dir} (only 1 is expected when using auto-mode)"
-     exit 1
-   fi
-fi
+function load_env() {
+  local script_dir=$1
 
-cd ${work_dir}
+  # Configuration stuff is read from this file
+  local run_env_sh="run-env.sh"
 
-if [ "x$JAVA_APP_JAR" != "x" ];  then
-   if [ -f "$JAVA_APP_JAR" ]; then
-       jar_file="$JAVA_APP_JAR"
-       cp_ext="${java_app_dir}"
-   elif [ -f "${java_app_dir}/$JAVA_APP_JAR" ]; then
-       jar_file="${java_app_dir}/$JAVA_APP_JAR"
-       cp_ext="${java_app_dir}:${work_dir}"
-   else
-       echo "No JAR File $JAVA_APP_JAR found"
-       exit 1
-   fi
-fi
+  # Load default default config
+  if [ -f "${script_dir}/${run_env_sh}" ]; then
+    source "${script_dir}/${run_env_sh}"
+  fi
 
-if [ "x$jar_file" != "x" ] ; then
-   exec java $java_options -cp ${cp_ext} -jar $jar_file $*
-else
-   exec java $java_options -cp ${classpath}:${java_app_dir}:${work_dir} $JAVA_MAIN_CLASS $*
-fi
+  # Check also $JAVA_APP_DIR. Overrides other defaults
+  # It's valid to set the app dir in the default script
+  if [ -z ${JAVA_APP_DIR} ]; then
+    JAVA_APP_DIR=${script_dir}
+  else
+    if [ -f "${JAVA_APP_DIR}/${run_env_sh}" ]; then
+      source "${JAVA_APP_DIR}/${run_env_sh}"
+    fi
+  fi
+  export JAVA_APP_DIR
+
+  # Workdir default to JAVA_APP_DIR
+  export JAVA_WORK_DIR=${JAVA_WORK_DIR:-${JAVA_APP_DIR}}
+  if [ -z ${JAVA_MAIN_CLASS} ] && [ -z ${JAVA_APP_JAR} ]; then
+    JAVA_APP_JAR=$(auto_detect_jar_file ${JAVA_APP_DIR})
+    if [ "x${JAVA_APP_JAR}" = x ]; then
+      echo "Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and exactly one jar-file expected in ${script_dir}"
+      exit 1
+    fi
+  fi
+  if [ "x${JAVA_APP_JAR}" != x ]; then
+    export JAVA_APP_JAR=$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})
+  else
+    export JAVA_MAIN_CLASS
+  fi
+}
+
+
+# Check for agent-bond-opts first, fallback to jolokia-opts if not existing
+function java_options_from_cmd() {
+  which run-java-options >/dev/null 2>&1
+  if [ $? = 0 ]; then
+    echo `run-java-options`
+  fi
+}
+
+# Echo the proper options to switch on debugging
+function debug_options() {
+  if [ "x$JAVA_ENABLE_DEBUG" != "x" ]; then
+    local debug_port=${JAVA_DEBUG_PORT:-5005}
+    echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug_port}"
+  fi
+}
+
+# Combine all java options
+function get_java_options() {
+  # Normalize spaces (i.e. trim and elimate double spaces)
+  echo "${JAVA_OPTIONS} $(debug_options) $(java_options_from_cmd)" | xargs | sed -e 's/\s+/ /g'
+}
+
+# Fetch classpath from env or from a local "run-classpath" file
+function get_classpath() {
+  local cp_path="."
+  if [ "x${JAVA_WORK_DIR}" != "x${JAVA_APP_DIR}" ]; then
+    cp_path="${cp_path}:${JAVA_APP_DIR}"
+  fi
+  if [ -z "${JAVA_CLASSPATH}" ] && [ "x${JAVA_MAIN_CLASS}" != x ]; then
+    if [ -f "${JAVA_APP_DIR}/run-classpath" ]; then
+      # Classpath is pre-created and stored in a 'run-classpath' file
+      cp_path="${cp_path}:`cat ${JAVA_APP_DIR}/run-classpath`"
+    else
+      # No order implied
+      cp_path="${cp_path}:${JAVA_APP_DIR}/*"
+    fi
+  elif [ "x${JAVA_CLASSPATH}" != x ]; then
+    # Given from the outside
+    cp_path=${JAVA_CLASSPATH}
+  fi
+  echo ${cp_path}
+}
+
+# Set process name if possible
+function get_exec_args() {
+  EXEC_ARGS=""
+  if [ "x${JAVA_APP_NAME}" != x ]; then
+    # Not all shells support the 'exec -a newname' syntax..
+    `exec -a test true 2>/dev/null`
+    if [ "$?" = 0 ] ; then
+      echo "-a ${JAVA_APP_NAME}"
+    else
+      # Lets switch to bash if you have it installed...
+      if [ -f "/bin/bash" ] ; then
+        exec "/bin/bash" $0 $@
+      fi
+    fi
+  fi
+}
+
+# Start JVM
+function startup() {
+  # Initialize environment
+  load_env $(get_script_dir)
+
+  local args
+  cd ${JAVA_WORK_DIR}
+  if [ "x$JAVA_APP_JAR" != x ] ; then
+     args="-jar ${JAVA_APP_JAR}"
+  else
+     args="${JAVA_MAIN_CLASS}"
+  fi
+  exec $(get_exec_args) java $(get_java_options) -cp "$(get_classpath)" ${args} $*
+}
+
+# =============================================================================
+# Fire up
+startup $*
