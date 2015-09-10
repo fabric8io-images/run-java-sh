@@ -38,7 +38,7 @@ function get_jar_file() {
       return
     fi
   done
-  echo "No JAR File $jar found"
+  echo "No ${JAVA_APP_JAR} found in $*"
   exit 1
 }
 
@@ -67,19 +67,20 @@ function load_env() {
   # Workdir default to JAVA_APP_DIR
   export JAVA_WORK_DIR=${JAVA_WORK_DIR:-${JAVA_APP_DIR}}
   if [ -z ${JAVA_MAIN_CLASS} ] && [ -z ${JAVA_APP_JAR} ]; then
-    JAVA_APP_JAR=$(auto_detect_jar_file ${JAVA_APP_DIR})
+
+    JAVA_APP_JAR=$(auto_detect_jar_file ${JAVA_APP_DIR}) || ( echo ${JAVA_APP_JAR} && exit 1 )
     if [ "x${JAVA_APP_JAR}" = x ]; then
       echo "Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and exactly one jar-file expected in ${script_dir}"
       exit 1
     fi
   fi
   if [ "x${JAVA_APP_JAR}" != x ]; then
-    export JAVA_APP_JAR=$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})
+    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})" || ( echo ${jar} && exit 1 )
+    export JAVA_APP_JAR=${jar}
   else
     export JAVA_MAIN_CLASS
   fi
 }
-
 
 # Check for agent-bond-opts first, fallback to jolokia-opts if not existing
 function java_options_from_cmd() {
