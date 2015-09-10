@@ -40,8 +40,8 @@ public class RunShLoaderTest {
 
     @Test
     public void checkRunScript() throws IOException {
-        checkLoad(RunShLoader.getRunScript(), "blocks/run-java-sh/files/run-java.sh");
-        checkLoad(RunShLoader.getReadme(), "blocks/run-java-sh/readme.md");
+        checkLoad(RunShLoader.getRunScript(), "fish-pepper/run-java-sh/fp-files/run-java.sh");
+        checkLoad(RunShLoader.getReadme(), "fish-pepper/run-java-sh/readme.md");
     }
 
     @Test
