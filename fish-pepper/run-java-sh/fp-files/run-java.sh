@@ -23,7 +23,7 @@ function auto_detect_jar_file() {
   # Filter out temporary jars from the shade plugin which start with 'original-'
   local old_dir=$(pwd)
   cd ${dir} || ( echo "No directory ${dir} found" && exit 1 )
-  if [ `ls *.jar 2>/dev/null | grep -v '^original-' | wc -l | xargs` = 1 ]; then
+  if [ `ls *.jar 2>/dev/null | grep -v '^original-' | wc -l | tr -d '[[:space:]]'` = 1 ]; then
     ls *.jar | grep -v '^original-'
   fi
   cd ${old_dir}
@@ -100,7 +100,7 @@ function debug_options() {
 # Combine all java options
 function get_java_options() {
   # Normalize spaces (i.e. trim and elimate double spaces)
-  echo "${JAVA_OPTIONS} $(debug_options) $(java_options_from_cmd)" | xargs | sed -e 's/\s+/ /g'
+  echo "${JAVA_OPTIONS} $(debug_options) $(java_options_from_cmd)"
 }
 
 # Fetch classpath from env or from a local "run-classpath" file
