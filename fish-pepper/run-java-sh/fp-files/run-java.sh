@@ -13,8 +13,8 @@
 
 function check_error() {
   local msg=$1
-  if echo $msg | grep -qF "^ERROR:"; then
-    echo $msg
+  if echo ${msg} | grep -q "^ERROR:"; then
+    echo ${msg}
     exit 1
   fi
 }
