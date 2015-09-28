@@ -137,9 +137,9 @@ function get_classpath() {
     if [ "x${JAVA_APP_JAR}" != x ]; then
       cp_path="${cp_path}:${JAVA_APP_JAR}"
     fi
-    if [ -f "${JAVA_APP_DIR}/run-classpath" ]; then
+    if [ -f "${JAVA_APP_DIR}/classpath" ]; then
       # Classpath is pre-created and stored in a 'run-classpath' file
-      cp_path="${cp_path}:`cat ${JAVA_APP_DIR}/run-classpath`"
+      cp_path="${cp_path}:`cat ${JAVA_APP_DIR}/classpath`"
     else
       # No order implied
       cp_path="${cp_path}:${JAVA_APP_DIR}/*"

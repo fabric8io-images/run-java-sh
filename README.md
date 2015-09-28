@@ -63,27 +63,29 @@ For more information on fish-pepper please refer to its
 
 The most important environment variables are
 
+* **JAVA_APP_DIR** directory holding jar file.
 * **JAVA_MAIN_CLASS** A main class to use as argument for `java`. When
-  this environment variable is given, all jar files in `$JAVA_APP_DIR`
-  are added to the classpath as well as `$JAVA_APP_DIR` and
-  `JAVA_WORKDIR` themselves, too.
-* **JAVA_APP_JAR** A jar file with an appropriate mainfest so that it
-  can be started with `java -jar`. If given it takes precedence of
-  `$JAVA_MAIN_CLASS`. In addition `$JAVA_APP_DIR` and `$JAVA_WORKDIR`
-  are added to the classpath, too. 
+  this environment variable is given. If a file `$JAVA_APP_DIR/classpath` is 
+  given this will be used, otherwise all jar files in `$JAVA_APP_DIR`
+  are added to the classpath in alphabetical order. The directory **$JAVA_APP_DIR} 
+  itself is added to the classpath, too. 
+* **JAVA_APP_JAR** A jar file with an appropriate manifest so that it
+  can be started with `java -jar` if no `$JAVA_MAIN_CLASS` is set. In all
+  cases this jar file is added to the classpath, too.
 * **JAVA_OPTIONS** options to add when calling `java`
 
 If the *main class* modus is used, the script tries to lookup a
 classpath from the file `classpath`. This could e.g. be created by a
 Maven plugin to keep the proper maven dependency order.
 
-If a script `agent-bond-opts` is on your path, it is called to obtain
-startup parameters for a
+
+If a script `run-java-options` is on your path, it is called to obtain
+startup parameters for an agent like
 [agent bond](https://github.com/fabric8io/agent-bond), a multipurpose
 agent currently including [Jolokia](http://www.jolokia.org) and
 [jmx_exporter](https://github.com/prometheus/jmx_exporter), a
 Prometheus metrics exporting agent. More information can be found in
-the documentation to agent bind, which also provided a fish-pepper
+the documentation to agent bond, which also provided a fish-pepper
 block.
 
 Remote debugging over port 5005 can be switched on by setting the
