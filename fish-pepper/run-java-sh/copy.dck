@@ -3,4 +3,4 @@
   destPath = destPath.replace(/\/+$/,"") + "/run-java.sh";
 }}# Add run script as {{= destPath }}
 COPY run-java.sh {{= destPath }}
-RUN chmod 755 {{== destPath }}
+RUN chmod 755 {{= destPath }}
