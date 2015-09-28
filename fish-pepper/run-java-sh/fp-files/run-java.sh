@@ -10,7 +10,7 @@
 
 
 # Error is indicated with a prefix in the return value
-function check_error() {
+check_error() {
   local msg=$1
   if echo ${msg} | grep -q "^ERROR:"; then
     echo ${msg}
@@ -19,7 +19,7 @@ function check_error() {
 }
 
 # The full qualified directory where this script is located
-function get_script_dir() {
+get_script_dir() {
   # Default is current directory
   local dir=`dirname "$0"`
   local full_dir=`cd "${dir}" ; pwd`
@@ -27,7 +27,7 @@ function get_script_dir() {
 }
 
 # Try hard to find a sane default jar-file
-function auto_detect_jar_file() {
+auto_detect_jar_file() {
   local dir=$1
 
   # Filter out temporary jars from the shade plugin which start with 'original-'
@@ -47,7 +47,7 @@ function auto_detect_jar_file() {
 }
 
 # Check directories for a jar file
-function get_jar_file() {
+get_jar_file() {
   local jar=$1
   shift;
 
@@ -68,7 +68,7 @@ function get_jar_file() {
   fi
 }
 
-function load_env() {
+load_env() {
   local script_dir=$1
 
   # Configuration stuff is read from this file
@@ -106,7 +106,7 @@ function load_env() {
 }
 
 # Check for agent-bond-opts first, fallback to jolokia-opts if not existing
-function java_options_from_cmd() {
+java_options_from_cmd() {
   which run-java-options >/dev/null 2>&1
   if [ $? = 0 ]; then
     echo `run-java-options`
@@ -114,7 +114,7 @@ function java_options_from_cmd() {
 }
 
 # Echo the proper options to switch on debugging
-function debug_options() {
+debug_options() {
   if [ "x${JAVA_ENABLE_DEBUG}" != "x" ]; then
     local debug_port=${JAVA_DEBUG_PORT:-5005}
     echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug_port}"
@@ -122,13 +122,13 @@ function debug_options() {
 }
 
 # Combine all java options
-function get_java_options() {
+get_java_options() {
   # Normalize spaces (i.e. trim and elimate double spaces)
   echo "${JAVA_OPTIONS} $(debug_options) $(java_options_from_cmd)"
 }
 
 # Fetch classpath from env or from a local "run-classpath" file
-function get_classpath() {
+get_classpath() {
   local cp_path="."
   if [ "x${JAVA_WORK_DIR}" != "x${JAVA_APP_DIR}" ]; then
     cp_path="${cp_path}:${JAVA_APP_DIR}"
@@ -152,7 +152,7 @@ function get_classpath() {
 }
 
 # Set process name if possible
-function get_exec_args() {
+get_exec_args() {
   EXEC_ARGS=""
   if [ "x${JAVA_APP_NAME}" != x ]; then
     # Not all shells support the 'exec -a newname' syntax..
@@ -169,7 +169,7 @@ function get_exec_args() {
 }
 
 # Start JVM
-function startup() {
+startup() {
   # Initialize environment
   load_env $(get_script_dir)
 
