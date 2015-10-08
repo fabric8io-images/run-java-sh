@@ -106,10 +106,14 @@ load_env() {
 }
 
 # Check for agent-bond-opts first, fallback to jolokia-opts if not existing
-java_options_from_cmd() {
-  which run-java-options >/dev/null 2>&1
-  if [ $? = 0 ]; then
-    echo `run-java-options`
+run_java_options() {
+  if [ -f "/opt/run-java-options" ]; then
+    echo `sh /opt/run-java-options`
+  else
+    which run-java-options >/dev/null 2>&1
+    if [ $? = 0 ]; then
+      echo `run-java-options`
+    fi
   fi
 }
 
@@ -124,7 +128,7 @@ debug_options() {
 # Combine all java options
 get_java_options() {
   # Normalize spaces (i.e. trim and elimate double spaces)
-  echo "${JAVA_OPTIONS} $(debug_options) $(java_options_from_cmd)"
+  echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options)"
 }
 
 # Fetch classpath from env or from a local "run-classpath" file
@@ -175,7 +179,7 @@ startup() {
 
   local args
   cd ${JAVA_WORK_DIR}
-  if [ "x$JAVA_MAIN_CLASS" != x ] ; then
+  if [ "x${JAVA_MAIN_CLASS}" != x ] ; then
      args="${JAVA_MAIN_CLASS}"
   else
      args="-jar ${JAVA_APP_JAR}"
