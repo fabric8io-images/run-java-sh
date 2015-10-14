@@ -145,7 +145,7 @@ format_classpath() {
     exit 1
   fi
 
-  local nr_lines=`echo $wc_out | awk '{ print $2 }'`
+  local nr_lines=`echo $wc_out | awk '{ print $1 }'`
   if [ ${nr_lines} -gt 1 ]; then
     local sep=""
     local classpath=""
