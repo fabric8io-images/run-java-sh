@@ -42,11 +42,11 @@ auto_detect_jar_file() {
     cd ${old_dir}
     echo "ERROR: Neither \$JAVA_MAIN_CLASS nor \$JAVA_APP_JAR is set and ${nr_jars} found in ${dir} (1 expected)"
   else
-    echo "ERROR: No directory ${dir} found for autodetection"
+    echo "ERROR: No directory ${dir} found for auto detection"
   fi
 }
 
-# Check directories for a jar file
+# Check directories (arg 2...n) for a jar file (arg 1)
 get_jar_file() {
   local jar=$1
   shift;
@@ -90,14 +90,14 @@ load_env() {
   fi
   export JAVA_APP_DIR
 
-  # Workdir default to JAVA_APP_DIR
-  export JAVA_WORK_DIR=${JAVA_WORK_DIR:-${JAVA_APP_DIR}}
+  # JAVA_LIB_DIR defaults to JAVA_APP_DIR
+  export JAVA_LIB_DIR=${JAVA_LIB_DIR:-${JAVA_APP_DIR}}
   if [ -z ${JAVA_MAIN_CLASS} ] && [ -z ${JAVA_APP_JAR} ]; then
     JAVA_APP_JAR="$(auto_detect_jar_file ${JAVA_APP_DIR})"
     check_error "${JAVA_APP_JAR}"
   fi
   if [ "x${JAVA_APP_JAR}" != x ]; then
-    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_WORK_DIR})"
+    local jar="$(get_jar_file ${JAVA_APP_JAR} ${JAVA_APP_DIR} ${JAVA_LIB_DIR})"
     check_error "${jar}"
     export JAVA_APP_JAR=${jar}
   else
@@ -131,19 +131,52 @@ get_java_options() {
   echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options)"
 }
 
+# Read in a classpath either from a file with a single line, colon separated
+# or given line-by-line in separate lines
+# Arg 1: path to claspath (must exist), optional arg2: application jar, which is stripped from the classpath in
+# multi line arrangements
+format_classpath() {
+  local cp_file=$1
+  local app_jar=$2
+
+  local wc_out=`wc -l $1 2>&1`
+  if [ $? -ne 0 ]; then
+    echo "Cannot read lines in ${cp_file}: $wc_out"
+    exit 1
+  fi
+
+  local nr_lines = `echo $wc_out | awk '{ print $2 }'`
+  if [ nr_lines -gt 1 ]; then
+    local sep=""
+    local classpath=""
+    while read file; do
+      local full_path="${JAVA_LIB_DIR}/${file}"
+      # Don't include app jar if include in list
+      if [ x"${app_jar}" != x"${full_path}" ]; then
+        classpath="${classpath}${sep}${full_path}"
+      fi
+      sep=":"
+    done < "${cp_file}"
+    echo "${classpath}"
+  else
+    # Supposed to be a single line, colon separated classpath file
+    cat ${cp_file}
+  fi
+}
+
 # Fetch classpath from env or from a local "run-classpath" file
 get_classpath() {
   local cp_path="."
-  if [ "x${JAVA_WORK_DIR}" != "x${JAVA_APP_DIR}" ]; then
-    cp_path="${cp_path}:${JAVA_APP_DIR}"
+  if [ "x${JAVA_LIB_DIR}" != "x${JAVA_APP_DIR}" ]; then
+    cp_path="${cp_path}:${JAVA_LIB_DIR}"
   fi
   if [ -z "${JAVA_CLASSPATH}" ] && [ "x${JAVA_MAIN_CLASS}" != x ]; then
     if [ "x${JAVA_APP_JAR}" != x ]; then
       cp_path="${cp_path}:${JAVA_APP_JAR}"
     fi
-    if [ -f "${JAVA_APP_DIR}/classpath" ]; then
+    if [ -f "${JAVA_LIB_DIR}/classpath" ]; then
       # Classpath is pre-created and stored in a 'run-classpath' file
-      cp_path="${cp_path}:`cat ${JAVA_APP_DIR}/classpath`"
+      cp_path="${cp_path}:`format_classpath ${JAVA_LIB_DIR}/classpath ${JAVA_APP_JAR}`"
     else
       # No order implied
       cp_path="${cp_path}:${JAVA_APP_DIR}/*"
@@ -178,7 +211,7 @@ startup() {
   load_env $(get_script_dir)
 
   local args
-  cd ${JAVA_WORK_DIR}
+  cd ${JAVA_APP_DIR}
   if [ "x${JAVA_MAIN_CLASS}" != x ] ; then
      args="${JAVA_MAIN_CLASS}"
   else
