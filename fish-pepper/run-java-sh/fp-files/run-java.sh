@@ -8,7 +8,6 @@
 #
 # ==========================================================
 
-
 # Error is indicated with a prefix in the return value
 check_error() {
   local msg=$1
@@ -81,8 +80,8 @@ load_env() {
 
   # Check also $JAVA_APP_DIR. Overrides other defaults
   # It's valid to set the app dir in the default script
-  if [ -z ${JAVA_APP_DIR} ]; then
-    JAVA_APP_DIR=${script_dir}
+  if [ -z "${JAVA_APP_DIR}" ]; then
+    JAVA_APP_DIR="${script_dir}"
   else
     if [ -f "${JAVA_APP_DIR}/${run_env_sh}" ]; then
       source "${JAVA_APP_DIR}/${run_env_sh}"
@@ -91,8 +90,8 @@ load_env() {
   export JAVA_APP_DIR
 
   # JAVA_LIB_DIR defaults to JAVA_APP_DIR
-  export JAVA_LIB_DIR=${JAVA_LIB_DIR:-${JAVA_APP_DIR}}
-  if [ -z ${JAVA_MAIN_CLASS} ] && [ -z ${JAVA_APP_JAR} ]; then
+  export JAVA_LIB_DIR="${JAVA_LIB_DIR:-${JAVA_APP_DIR}}"
+  if [ -z "${JAVA_MAIN_CLASS}" ] && [ -z "${JAVA_APP_JAR}" ]; then
     JAVA_APP_JAR="$(auto_detect_jar_file ${JAVA_APP_DIR})"
     check_error "${JAVA_APP_JAR}"
   fi
@@ -136,8 +135,8 @@ get_java_options() {
 # Arg 1: path to claspath (must exist), optional arg2: application jar, which is stripped from the classpath in
 # multi line arrangements
 format_classpath() {
-  local cp_file=$1
-  local app_jar=$2
+  local cp_file="$1"
+  local app_jar="$2"
 
   local wc_out=`wc -l $1 2>&1`
   if [ $? -ne 0 ]; then
@@ -160,7 +159,7 @@ format_classpath() {
     echo "${classpath}"
   else
     # Supposed to be a single line, colon separated classpath file
-    cat ${cp_file}
+    cat "${cp_file}"
   fi
 }
 
@@ -183,9 +182,9 @@ get_classpath() {
     fi
   elif [ "x${JAVA_CLASSPATH}" != x ]; then
     # Given from the outside
-    cp_path=${JAVA_CLASSPATH}
+    cp_path="${JAVA_CLASSPATH}"
   fi
-  echo ${cp_path}
+  echo "${cp_path}"
 }
 
 # Set process name if possible
