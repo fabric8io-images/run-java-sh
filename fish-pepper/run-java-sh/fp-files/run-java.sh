@@ -51,8 +51,8 @@ get_jar_file() {
   shift;
 
   if [ "${jar:0:1}" = "/" ]; then
-    if [ -f ${jar} ]; then
-      echo ${jar}
+    if [ -f "${jar}" ]; then
+      echo "${jar}"
     else
       echo "ERROR: No such file ${jar}"
     fi
@@ -104,7 +104,7 @@ load_env() {
   fi
 }
 
-# Check for agent-bond-opts first, fallback to jolokia-opts if not existing
+# Check for stanarad-opts first, fallback to run-java-options in the path if not existing
 run_java_options() {
   if [ -f "/opt/run-java-options" ]; then
     echo `sh /opt/run-java-options`
@@ -124,10 +124,40 @@ debug_options() {
   fi
 }
 
+# Check for memory options and calculate a sane default if not given
+memory_options() {
+  # High number which is the max limit unti which memory is supposed to be
+  # unbounded. 512 TB for now.
+  local max_mem_unbounded="562949953421312"
+
+  # Check whether -Xmx is already given in JAVA_OPTIONS. Then we dont
+  # do anything here
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
+    return
+  fi
+
+  # Check if explicitely disabled
+  if [ "$JAVA_MAX_MEM_RATIO" -eq 0 ]; then
+    return
+  fi
+
+  # Check for the 'real memory size' and caluclate mx from a ratio
+  # given (default is 85%)
+  local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+  if [ -r "${mem_file}" ]; then
+    local max_mem="$(cat ${mem_file})"
+    local ratio=${JAVA_MAX_MEM_RATIO:-85}
+    if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
+      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+      echo "-Xmx${mx}m"
+    fi
+  fi
+}
+
 # Combine all java options
 get_java_options() {
   # Normalize spaces (i.e. trim and elimate double spaces)
-  echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options)"
+  echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options) $(memory_options)"  | awk '$1=$1'
 }
 
 # Read in a classpath either from a file with a single line, colon separated
