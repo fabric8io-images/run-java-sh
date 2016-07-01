@@ -137,7 +137,7 @@ memory_options() {
   fi
 
   # Check if explicitely disabled
-  if [ "$JAVA_MAX_MEM_RATIO" -eq 0 ]; then
+  if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
     return
   fi
 
