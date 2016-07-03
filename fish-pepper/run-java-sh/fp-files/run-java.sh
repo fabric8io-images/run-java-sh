@@ -124,40 +124,16 @@ debug_options() {
   fi
 }
 
-# Check for memory options and calculate a sane default if not given
-memory_options() {
-  # High number which is the max limit unti which memory is supposed to be
-  # unbounded. 512 TB for now.
-  local max_mem_unbounded="562949953421312"
-
-  # Check whether -Xmx is already given in JAVA_OPTIONS. Then we dont
-  # do anything here
-  if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
-    return
-  fi
-
-  # Check if explicitely disabled
-  if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
-    return
-  fi
-
-  # Check for the 'real memory size' and caluclate mx from a ratio
-  # given (default is 85%)
-  local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
-  if [ -r "${mem_file}" ]; then
-    local max_mem="$(cat ${mem_file})"
-    local ratio=${JAVA_MAX_MEM_RATIO:-85}
-    if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
-      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-      echo "-Xmx${mx}m"
-    fi
-  fi
-}
-
 # Combine all java options
 get_java_options() {
+  local script=$(readlink -f "$0")
+  local dir=$(dirname "$script")
+  kcontainer_java_opts=""
+  if [ -f "$dir/java-container-options" ]; then
+    container_java_opts=$($dir/java-container-options)
+  fi
   # Normalize spaces (i.e. trim and elimate double spaces)
-  echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options) $(memory_options)"  | awk '$1=$1'
+  echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options) ${container_java_opts}" | awk '$1=$1'
 }
 
 # Read in a classpath either from a file with a single line, colon separated

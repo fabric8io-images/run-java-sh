@@ -1,0 +1,47 @@
+#!/bin/sh
+# =================================================================
+# Detect whether running in a container and set appropriate options
+# for limiting Java VM resources
+#
+# Usage: JAVA_OPTIONS="$(java-container-options.sh)"
+
+# Env Vars respected:
+
+# JAVA_OPTIONS: Checked for already set options
+# JAVA_MAX_MEM_RATIO: Ratio use to calculate a default maximum Memory, in percent.
+#                     E.g. the default value "85" implies that 85% of the Memory
+#                     given to the container is used as the maximum heap memory with
+#                     '-Xmx'
+
+# Check for memory options and calculate a sane default if not given
+max_memory() {
+  # High number which is the max limit unti which memory is supposed to be
+  # unbounded. 512 TB for now.
+  local max_mem_unbounded="562949953421312"
+
+  # Check whether -Xmx is already given in JAVA_OPTIONS. Then we dont
+  # do anything here
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
+    return
+  fi
+
+  # Check if explicitely disabled
+  if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
+    return
+  fi
+
+  # Check for the 'real memory size' and caluclate mx from a ratio
+  # given (default is 85%)
+  local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+  if [ -r "${mem_file}" ]; then
+    local max_mem="$(cat ${mem_file})"
+    local ratio=${JAVA_MAX_MEM_RATIO:-85}
+    if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
+      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+      echo "-Xmx${mx}m"
+    fi
+  fi
+}
+
+## Echo options, trimming trailing and multiple spaces
+echo "$(max_memory)" | awk '$1=$1'
