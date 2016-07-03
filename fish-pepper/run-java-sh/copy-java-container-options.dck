@@ -3,4 +3,4 @@
   destPath = destPath.replace(/\/+$/,"");
 }}# Add java-container-options to {{= destPath }} and make it executable
 COPY java-container-options {{= destPath }}/java-container-options
-RUN chmod 755 {{= destPath }}/java-container-options.sh 
+RUN chmod 755 {{= destPath }}/java-container-options
