@@ -51,7 +51,7 @@ For more information on fish-pepper please refer to its [documentation](https://
 The most important environment variables are
 
 * **JAVA_APP_DIR** directory holding jar file.
-* **JAVA_MAIN_CLASS** A main class to use as argument for `java`. When this environment variable is given. If a file `$JAVA_APP_DIR/classpath` is given this will be used, otherwise all jar files in `$JAVA_APP_DIR` are added to the classpath in alphabetical order. The directory **$JAVA_APP_DIR}  itself is added to the classpath, too.
+* **JAVA_MAIN_CLASS** A main class to use as argument for `java`. When this environment variable is given. If a file `$JAVA_APP_DIR/classpath` is given this will be used, otherwise all jar files in `$JAVA_APP_DIR` are added to the classpath in alphabetical order. The directory `$JAVA_APP_DIR`  itself is added to the classpath, too.
 * **JAVA_APP_JAR** A jar file with an appropriate manifest so that it can be started with `java -jar` if no `$JAVA_MAIN_CLASS` is set. In all cases this jar file is added to the classpath, too.
 * **JAVA_OPTIONS** options to add when calling `java`
 
@@ -61,4 +61,4 @@ If a script `run-java-options` is on your path, it is called to obtain startup p
 
 Remote debugging over port 5005 can be switched on by setting the environment variable `JAVA_ENABLE_DEBUG`.
 
-These and other supported environment variables are described in detail in a [separate document](blocks/run-java-sh/readme.md). 
+These and other supported environment variables are described in detail in a [separate document](fish-pepper/run-java-sh/fp-files/readme.md).
