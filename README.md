@@ -61,4 +61,4 @@ If a script `run-java-options` is on your path, it is called to obtain startup p
 
 Remote debugging over port 5005 can be switched on by setting the environment variable `JAVA_ENABLE_DEBUG`.
 
-These and other supported environment variables are described in detail in a [separate document](fish-pepper/run-java-sh/fp-files/readme.md).
+These and other supported environment variables are described in detail in a [separate document](fish-pepper/run-java-sh/readme.md).
