@@ -222,6 +222,7 @@ startup() {
   else
      args="-jar ${JAVA_APP_JAR}"
   fi
+  echo exec $(get_exec_args) java $(get_java_options) -cp "$(get_classpath)" ${args} $*
   exec $(get_exec_args) java $(get_java_options) -cp "$(get_classpath)" ${args} $*
 }
 
