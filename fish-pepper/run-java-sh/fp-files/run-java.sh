@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Fail on a single failed command
+set -eo pipefail
+
 # ==========================================================
 # Generic run script for running arbitrary Java applications
 #
