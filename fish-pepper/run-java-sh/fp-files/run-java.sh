@@ -104,7 +104,7 @@ load_env() {
   fi
 }
 
-# Check for stanarad-opts first, fallback to run-java-options in the path if not existing
+# Check for standard /opt/run-java-options first, fallback to run-java-options in the path if not existing
 run_java_options() {
   if [ -f "/opt/run-java-options" ]; then
     echo `sh /opt/run-java-options`
@@ -116,14 +116,6 @@ run_java_options() {
   fi
 }
 
-# Echo the proper options to switch on debugging
-debug_options() {
-  if [ "x${JAVA_ENABLE_DEBUG}" != "x" ]; then
-    local debug_port=${JAVA_DEBUG_PORT:-5005}
-    echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug_port}"
-  fi
-}
-
 # Combine all java options
 get_java_options() {
   local script=$(readlink -f "$0")
@@ -132,8 +124,11 @@ get_java_options() {
   if [ -f "$dir/java-container-options" ]; then
     container_java_opts=$($dir/java-container-options)
   fi
+  if [ -f "$dir/debug-options" ]; then
+    debug_opts=$($dir/debug-options)
+  fi
   # Normalize spaces (i.e. trim and elimate double spaces)
-  echo "${JAVA_OPTIONS} $(debug_options) $(run_java_options) ${container_java_opts}" | awk '$1=$1'
+  echo "${JAVA_OPTIONS} $(run_java_options) ${debug_opts} ${container_java_opts}" | awk '$1=$1'
 }
 
 # Read in a classpath either from a file with a single line, colon separated
