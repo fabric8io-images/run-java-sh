@@ -9,9 +9,20 @@
 
 # JAVA_OPTIONS: Checked for already set options
 # JAVA_MAX_MEM_RATIO: Ratio use to calculate a default maximum Memory, in percent.
-#                     E.g. the default value "85" implies that 85% of the Memory
+#                     E.g. the default value "50" implies that 50% of the Memory
 #                     given to the container is used as the maximum heap memory with
-#                     '-Xmx'
+#                     '-Xmx'. It is a heuristic and should be better backed up with real
+#                     experiments and measurements.
+#                     For a good overviews what tuning options are available -->
+#                             https://youtu.be/Vt4G-pHXfs4
+#                             https://www.youtube.com/watch?v=w1rZOY5gbvk
+#                             https://vimeo.com/album/4133413/video/181900266
+# Also note that heap is only a small portion of the memory used by a JVM. There are lot
+# of other memory areas (metadata, thread, code cache, ...) which addes to the overall
+# size. There is no easy solution for this, 50% seems to be are reasonable compromise.
+# However, when your container gets killed because of an OOM, then you should tune
+# the absolute values
+#
 
 # Check for memory options and calculate a sane default if not given
 max_memory() {
@@ -35,7 +46,7 @@ max_memory() {
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
     local max_mem="$(cat ${mem_file})"
-    local ratio=${JAVA_MAX_MEM_RATIO:-85}
+    local ratio=${JAVA_MAX_MEM_RATIO:-50}
     if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
       local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
       echo "-Xmx${mx}m"
@@ -43,5 +54,12 @@ max_memory() {
   fi
 }
 
+# Switch on diagnostics except when switched off
+diagnostics() {
+  if [ "x$JAVA_NO_DIAGNOSTICS" != "x" ]; then
+    echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
+  fi
+}
+
 ## Echo options, trimming trailing and multiple spaces
-echo "$(max_memory)" | awk '$1=$1'
+echo "$(max_memory) $(diagnostics)" | awk '$1=$1'
