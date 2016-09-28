@@ -56,7 +56,7 @@ max_memory() {
 
 # Switch on diagnostics except when switched off
 diagnostics() {
-  if [ "x$JAVA_NO_DIAGNOSTICS" != "x" ]; then
+  if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
     echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
   fi
 }
