@@ -42,7 +42,7 @@ max_memory() {
   fi
 
   # Check for the 'real memory size' and caluclate mx from a ratio
-  # given (default is 85%)
+  # given (default is 50%)
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
     local max_mem="$(cat ${mem_file})"
