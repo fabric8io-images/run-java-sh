@@ -61,5 +61,14 @@ diagnostics() {
   fi
 }
 
+cpu_core_tunning() {
+  if [ "x${JAVA_CORE_LIMIT}" != "x" ]; then
+    echo "-XX:ParallelGCThreads=${JAVA_CORE_LIMIT} \
+          -XX:ConcGCThreads=${JAVA_CORE_LIMIT} \
+          -XX:ParallelGCThreads=${JAVA_CORE_LIMIT} \
+          -Djava.util.concurrent.ForkJoinPool.common.parallelism=${JAVA_CORE_LIMIT}"
+  fi  
+}
+
 ## Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(diagnostics)" | awk '$1=$1'
+echo "$(max_memory) $(diagnostics) $(cpu_core_tunning)" | awk '$1=$1'

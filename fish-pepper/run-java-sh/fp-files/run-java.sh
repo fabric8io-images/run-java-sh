@@ -82,7 +82,7 @@ ceiling() {
 }
 
 # Based on the cgroup limits, figure out the max number of core we should utilize
-max_cores() {
+core_limit() {
   local cpu_period_file="/sys/fs/cgroup/cpu/cpu.cfs_period_us"
   local cpu_quota_file="/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
   if [ -r "${cpu_period_file}" ]; then
@@ -106,11 +106,11 @@ load_env() {
     source "${script_dir}/${run_env_sh}"
   fi
 
-  if [ -z "${MAX_CORES}" ]; then
-    MAX_CORES="$(max_cores)"
+  if [ -z "${JAVA_CORE_LIMIT}" ]; then
+    JAVA_CORE_LIMIT="$(core_limit)"
   fi
-  if [ "${MAX_CORES}" != "" ]; then
-    export MAX_CORES
+  if [ "${JAVA_CORE_LIMIT}" != "" ]; then
+    export JAVA_CORE_LIMIT
   fi
 
   # Check also $JAVA_APP_DIR. Overrides other defaults
