@@ -28,7 +28,10 @@ core_limit() {
 
     if [ -r "${cpu_quota_file}" ]; then
       local cpu_quota="$(cat ${cpu_quota_file})"
-      ceiling "$cpu_quota" "$cpu_period"
+      # cfs_quota_us == -1 --> no restrictions
+      if [ "x$cpu_quota" != "x-1" ];
+        ceiling "$cpu_quota" "$cpu_period"
+      fi
     fi
   fi
 }
