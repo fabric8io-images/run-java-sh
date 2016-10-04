@@ -26,10 +26,6 @@
 
 # Check for memory options and calculate a sane default if not given
 max_memory() {
-  # High number which is the max limit unti which memory is supposed to be
-  # unbounded. 512 TB for now.
-  local max_mem_unbounded="562949953421312"
-
   # Check whether -Xmx is already given in JAVA_OPTIONS. Then we dont
   # do anything here
   if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
@@ -43,9 +39,8 @@ max_memory() {
 
   # Check for the 'real memory size' and caluclate mx from a ratio
   # given (default is 50%)
-  local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
-  if [ -r "${mem_file}" ]; then
-    local max_mem="$(cat ${mem_file})"
+  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+    local max_mem="${CONTAINER_MAX_MEMORY}"
     local ratio=${JAVA_MAX_MEM_RATIO:-50}
     if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
       local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
@@ -62,12 +57,20 @@ diagnostics() {
 }
 
 cpu_core_tunning() {
-  if [ "x${JAVA_CORE_LIMIT}" != "x" ]; then
-    echo "-XX:ParallelGCThreads=${JAVA_CORE_LIMIT} \
-          -XX:ConcGCThreads=${JAVA_CORE_LIMIT} \
-          -XX:ParallelGCThreads=${JAVA_CORE_LIMIT} \
-          -Djava.util.concurrent.ForkJoinPool.common.parallelism=${JAVA_CORE_LIMIT}"
-  fi  
+  local core_limit="${JAVA_CORE_LIMIT}"
+  if [ "x$core_limit" = "x0" ]; then
+    return
+  fi
+
+  if [ "x$CONTAINER_CORE_LIMIT" != x ]; then
+    if [ "x$core_limit" = x ]; then
+      core_limit="${CONTAINER_CORE_LIMIT}"
+    fi
+    echo "-XX:ParallelGCThreads=${core_limit} " \
+         "-XX:ConcGCThreads=${core_limit} " \
+         "-XX:ParallelGCThreads=${core_limit} " \
+         "-Djava.util.concurrent.ForkJoinPool.common.parallelism=${core_limit}"
+  fi
 }
 
 ## Echo options, trimming trailing and multiple spaces
