@@ -70,6 +70,31 @@ get_jar_file() {
   fi
 }
 
+ceiling() {
+  awk -vnumber="$1" -vdiv="$2" '
+    function ceiling(x){
+      return x%1 ? int(x)+1 : x
+    }
+    BEGIN{
+      print ceiling(number/div)
+    }
+  '
+}
+
+# Based on the cgroup limits, figure out the max number of core we should utilize
+core_limit() {
+  local cpu_period_file="/sys/fs/cgroup/cpu/cpu.cfs_period_us"
+  local cpu_quota_file="/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+  if [ -r "${cpu_period_file}" ]; then
+    local cpu_period="$(cat ${cpu_period_file})"
+
+    if [ -r "${cpu_quota_file}" ]; then
+      local cpu_quota="$(cat ${cpu_quota_file})"
+      ceiling $cpu_quota $cpu_period
+    fi
+  fi
+}
+
 load_env() {
   local script_dir=$1
 
@@ -79,6 +104,13 @@ load_env() {
   # Load default default config
   if [ -f "${script_dir}/${run_env_sh}" ]; then
     source "${script_dir}/${run_env_sh}"
+  fi
+
+  if [ -z "${JAVA_CORE_LIMIT}" ]; then
+    JAVA_CORE_LIMIT="$(core_limit)"
+  fi
+  if [ "${JAVA_CORE_LIMIT}" != "" ]; then
+    export JAVA_CORE_LIMIT
   fi
 
   # Check also $JAVA_APP_DIR. Overrides other defaults
