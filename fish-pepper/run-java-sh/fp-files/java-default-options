@@ -42,10 +42,8 @@ max_memory() {
   if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
     local max_mem="${CONTAINER_MAX_MEMORY}"
     local ratio=${JAVA_MAX_MEM_RATIO:-50}
-    if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
-      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-      echo "-Xmx${mx}m"
-    fi
+    local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+    echo "-Xmx${mx}m"
   fi
 }
 
