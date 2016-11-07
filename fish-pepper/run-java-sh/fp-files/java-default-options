@@ -66,7 +66,6 @@ cpu_core_tunning() {
     fi
     echo "-XX:ParallelGCThreads=${core_limit} " \
          "-XX:ConcGCThreads=${core_limit} " \
-         "-XX:ParallelGCThreads=${core_limit} " \
          "-Djava.util.concurrent.ForkJoinPool.common.parallelism=${core_limit}"
   fi
 }
