@@ -2,5 +2,5 @@
   var destPath = fp.blockOpts.dest || "";
   destPath = destPath.replace(/\/+$/,"");
 }}# Add debug-options and java-container-options to {{= destPath }} and make it executable
-COPY debug-options java-container-options {{= destPath }}/
-RUN chmod 755 {{= destPath }}/debug-options {{= destPath }}/java-container-options
+COPY debug-options java-default-options {{= destPath }}/
+RUN chmod 755 {{= destPath }}/debug-options {{= destPath }}/java-default-options
