@@ -7,7 +7,7 @@ set -eo pipefail
 # Generic run script for running arbitrary Java applications
 #
 # Source and Documentation can be found
-# at https://github.com/fabric8io/run-java-sh
+# at https://github.com/fabric8io-images/run-java-sh
 #
 # ==========================================================
 
