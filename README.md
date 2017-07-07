@@ -33,7 +33,7 @@ mvn exec:java | sh
 
 ### fish-pepper
 
-[fish-pepper](https://github.com/fabric8io=images/fish-pepper) is a Docker build composition tool based on templates. It has a concept called **blocks** which is a collection of templates and files to be copied into a Docker image. Blocks can also be obtained remotely from a Git repository. In order to use this startup script for fish-pepper, you need to add the following refernce to the main configuration `fish-pepper.yml` in you Docker image build:
+[fish-pepper](https://github.com/fabric8io-images/fish-pepper) is a Docker build composition tool based on templates. It has a concept called **blocks** which is a collection of templates and files to be copied into a Docker image. Blocks can also be obtained remotely from a Git repository. In order to use this startup script for fish-pepper, you need to add the following refernce to the main configuration `fish-pepper.yml` in you Docker image build:
 
 ```yml
 blocks:
