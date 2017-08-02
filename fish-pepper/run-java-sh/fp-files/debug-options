@@ -6,7 +6,11 @@
 debug_options() {
   if [ "x${JAVA_ENABLE_DEBUG}" != "x" -o "x${JAVA_DEBUG_ENABLE}" != "x" -o "x${JAVA_DEBUG}" != "x" ]; then
     local debug_port=${JAVA_DEBUG_PORT:-5005}
-    echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug_port}"
+    local suspend_mode="n"
+    if [ "x${JAVA_DEBUG_SUSPEND}" != "x" ]; then
+        suspend_mode="y"
+    fi
+    echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=${debug_port}"
   fi
 }
 

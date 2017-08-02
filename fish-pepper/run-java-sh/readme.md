@@ -11,6 +11,7 @@ The run script can be influenced by the following environment variables:
 * **JAVA_APP_NAME** Name to use for the process
 * **JAVA_CLASSPATH** the classpath to use. If not given, the startup script checks for a file `${JAVA_APP_DIR}/classpath` and use its content literally as classpath. If this file doesn't exists all jars in the app dir are added (`classes:${JAVA_APP_DIR}/*`).
 * **JAVA_DEBUG** If set remote debugging will be switched on
+* **JAVA_DEBUG_SUSPEND** If set enables suspend mode in remote debugging
 * **JAVA_DEBUG_PORT** Port used for remote debugging. Default: 5005
 
 If neither `$JAVA_APP_JAR` nor `$JAVA_MAIN_CLASS` is given, `$JAVA_APP_DIR` is checked for a single JAR file which is taken as `$JAVA_APP_JAR`. If no or more then one jar file is found, an error is thrown.
