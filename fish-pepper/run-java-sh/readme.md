@@ -31,11 +31,11 @@ The classpath is build up with the following parts:
 
 These variables can be also set in a shell config file `run-env.sh`, which will be sourced by the startup script. This file can be located in the directory where the startup script is located and in `${JAVA_APP_DIR}`, whereas environment variables in the latter override the ones in `run-env.sh` from the script directory.
 
-This startup script also checks for a command `run-java-options`. If existant it will be called and the output is added to the environment variable `$JAVA_OPTIONS`.
+This startup script also checks for a command `run-java-options`. If existent it will be called and the output is added to the environment variable `$JAVA_OPTIONS`.
 
 The startup script also exposes some environment variables describing container limits which can be used by applications:
 
-* **CONTAINER_CORE_LIMIT** a calculated core limit as desribed in https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt
+* **CONTAINER_CORE_LIMIT** a calculated core limit as described in https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt
 * **CONTAINER_MAX_MEMORY** memory limit given to the container
 
 Any arguments given during startup are taken over as arguments to the Java app.
