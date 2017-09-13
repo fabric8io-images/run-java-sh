@@ -32,7 +32,7 @@ max_memory() {
     return
   fi
 
-  # Check if explicitely disabled
+  # Check if explicitly disabled
   if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
     return
   fi
