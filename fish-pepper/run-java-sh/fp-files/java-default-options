@@ -74,7 +74,7 @@ cpu_core_tunning() {
 # -XX:GCTimeRatio=4
 # -XX:AdaptiveSizePolicyWeight=90
 gc_tunning() {
-    echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
+    echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
 }
 
 #-XX:MinHeapFreeRatio=20  These parameters tell the heap to shrink aggressively and to grow conservatively.
