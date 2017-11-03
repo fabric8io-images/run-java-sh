@@ -54,7 +54,7 @@ diagnostics() {
   fi
 }
 
-cpu_core_tunning() {
+cpu_options() {
   local core_limit="${JAVA_CORE_LIMIT}"
   if [ "x$core_limit" = "x0" ]; then
     return
@@ -84,4 +84,4 @@ heap_ratio() {
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(diagnostics) $(cpu_core_tunning) $(gc_options)" | awk '$1=$1'
+echo "$(max_memory) $(diagnostics) $(cpu_options) $(gc_options)" | awk '$1=$1'
