@@ -73,7 +73,7 @@ cpu_core_tunning() {
 # These parameters are necessary when running parallel GC if you want to use the Min and Max Heap Free ratios.
 # -XX:GCTimeRatio=4
 # -XX:AdaptiveSizePolicyWeight=90
-gc_tunning() {
+gc_options() {
     echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
 }
 
@@ -84,4 +84,4 @@ heap_ratio() {
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(diagnostics) $(cpu_core_tunning) $(gc_tunning)" | awk '$1=$1'
+echo "$(max_memory) $(diagnostics) $(cpu_core_tunning) $(gc_options)" | awk '$1=$1'
