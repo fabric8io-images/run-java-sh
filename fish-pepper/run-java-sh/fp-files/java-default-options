@@ -42,7 +42,7 @@ memory_options() {
 }
 
 # Switch on diagnostics except when switched off
-diagnostics() {
+diagnostic_options() {
   if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
     echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
   fi
@@ -78,4 +78,4 @@ heap_ratio() {
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(memory_options) $(diagnostics) $(cpu_options) $(gc_options)" | awk '$1=$1'
+echo "$(memory_options) $(diagnostic_options) $(cpu_options) $(gc_options)" | awk '$1=$1'
