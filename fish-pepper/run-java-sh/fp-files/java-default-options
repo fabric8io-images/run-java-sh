@@ -54,6 +54,45 @@ diagnostics() {
   fi
 }
 
+add2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1+$2}'
+}
+
+div2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1/$2}'
+}
+
+mul2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1*$2}'
+}
+
+sub2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1-$2}'
+}
+
+log2_int() {
+  echo "$1" | awk '{printf "%d\n", log($1)/log(2)}'
+}
+
+max2() {
+  [ $1 -le $2 ] && echo "$2" || echo "$1"
+}
+
+# Replicate thread ergonomics for tiered compilation.
+# This could ideally be skipped when tiered compilation is disabled.
+# The algorithm is taken from:
+# OpenJDK / jdk8u / jdk8u / hotspot
+# src/share/vm/runtime/advancedThresholdPolicy.cpp
+ci_compiler_count() {
+  local core_limit=$1
+  local log_cpu=$(log2_int $core_limit)
+  local loglog_cpu=$(log2_int $(max2 $log_cpu 1))
+  local count=$(mul2 $(max2 $(mul2 $log_cpu $loglog_cpu) 1) 1.5)
+  local c1_count=$(max2 $(div2 $count 3) 1)
+  local c2_count=$(max2 $(sub2 $count $c1_count) 1)
+  echo $(add2 $c1_count $c2_count)
+}
+
 cpu_options() {
   local core_limit="${JAVA_CORE_LIMIT}"
   if [ "x$core_limit" = "x0" ]; then
@@ -66,7 +105,8 @@ cpu_options() {
     fi
     echo "-XX:ParallelGCThreads=${core_limit} " \
          "-XX:ConcGCThreads=${core_limit} " \
-         "-Djava.util.concurrent.ForkJoinPool.common.parallelism=${core_limit}"
+         "-Djava.util.concurrent.ForkJoinPool.common.parallelism=${core_limit} " \
+         "-XX:CICompilerCount=$(ci_compiler_count $core_limit)"
   fi
 }
 
