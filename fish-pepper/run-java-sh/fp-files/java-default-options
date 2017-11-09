@@ -47,6 +47,27 @@ max_memory() {
   fi
 }
 
+c2_disabled() {
+  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+    # Disable C2 compiler when container memory <=300MB
+    if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+      echo true
+      return
+    fi
+  fi
+  echo false
+}
+
+jit_options() {
+  # Check whether -XX:TieredStopAtLevel is already given in JAVA_OPTIONS
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:TieredStopAtLevel"; then
+    return
+  fi
+  if [ $(c2_disabled) = true ]; then
+    echo "-XX:TieredStopAtLevel=1"
+  fi
+}
+
 # Switch on diagnostics except when switched off
 diagnostics() {
   if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
@@ -90,7 +111,7 @@ ci_compiler_count() {
   local count=$(mul2 $(max2 $(mul2 $log_cpu $loglog_cpu) 1) 1.5)
   local c1_count=$(max2 $(div2 $count 3) 1)
   local c2_count=$(max2 $(sub2 $count $c1_count) 1)
-  echo $(add2 $c1_count $c2_count)
+  [ $(c2_disabled) = true ] && echo "$c1_count" || echo $(add2 $c1_count $c2_count)
 }
 
 cpu_core_tunning() {
@@ -111,4 +132,4 @@ cpu_core_tunning() {
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(diagnostics) $(cpu_core_tunning)" | awk '$1=$1'
+echo "$(max_memory) $(jit_options) $(diagnostics) $(cpu_core_tunning)" | awk '$1=$1'
