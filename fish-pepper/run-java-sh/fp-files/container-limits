@@ -43,8 +43,10 @@ max_memory() {
   if [ -r "${mem_file}" ]; then
     local max_mem_cgroup="$(cat ${mem_file})"
     local max_mem_meminfo=$(($(awk '/MemTotal/ {print $2}' /proc/meminfo)*1024))
-    local max_mem=$(($max_mem_meminfo>$max_mem_cgroup?$max_mem_cgroup:$max_mem_meminfo))
-    echo "${max_mem}"
+    if [ "${max_mem_cgroup}" -ne "-1" ] && [ "${max_mem_cgroup}" -lt "${max_mem_meminfo}" ]
+    then
+      echo "${max_mem_cgroup}"
+    fi
   fi
 }
 
