@@ -39,12 +39,13 @@ core_limit() {
 max_memory() {
   # High number which is the max limit unti which memory is supposed to be
   # unbounded. 
-  local max_mem_unbounded="$(cat /sys/fs/cgroup/memory/memory.memsw.limit_in_bytes)"
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
-    local max_mem="$(cat ${mem_file})"
-    if [ ${max_mem} -lt ${max_mem_unbounded} ]; then
-      echo "${max_mem}"
+    local max_mem_cgroup="$(cat ${mem_file})"
+    local max_mem_cgroup=$(cat /proc/meminfo | awk '/MemTotal/ {printf "%d\n", $2 * 1024}')
+    if [ "${max_mem_cgroup}" -ne "-1" ] && [ "${max_mem_cgroup}" -lt "${max_mem_meminfo}" ]
+    then
+      echo "${max_mem_cgroup}"
     fi
   fi
 }
