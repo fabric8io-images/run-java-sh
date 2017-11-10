@@ -47,6 +47,31 @@ max_memory() {
   fi
 }
 
+# Check for memory options and set initial heap size if requested
+initial_memory() {
+  # Check whether -Xms is already given in JAVA_OPTIONS. Then we dont
+  # do anything here
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-Xms"; then
+    return
+  fi
+
+  # Check if value set
+  if [ -z "$JAVA_INIT_MEM_RATIO" ]; then
+    return
+  fi
+
+  # Check for the 'real memory size' and caluclate ms from a ratio
+  # given 
+  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+    local max_mem="${CONTAINER_MAX_MEMORY}"
+    local ratio=${JAVA_INIT_MEM_RATIO}
+    local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+    echo "-Xms${mx}m"
+  fi
+}
+
+
+
 # Switch on diagnostics except when switched off
 diagnostics() {
   if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
@@ -84,4 +109,4 @@ heap_ratio() {
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(diagnostics) $(cpu_options) $(gc_options)" | awk '$1=$1'
+echo "$(initial_memory) $(max_memory) $(diagnostics) $(cpu_options) $(gc_options)" | awk '$1=$1'
