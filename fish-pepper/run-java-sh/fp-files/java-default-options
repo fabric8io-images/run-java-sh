@@ -25,7 +25,7 @@
 # size. When your container gets killed because of an OOM, then you should tune
 # the absolute values.
 
-max_memory() {
+memory_options() {
   # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
     return
@@ -73,7 +73,7 @@ jit_options() {
 }
 
 # Switch on diagnostics except when switched off
-diagnostics() {
+diagnostic_options() {
   if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
     echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
   fi
@@ -149,4 +149,4 @@ heap_ratio() {
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(jit_options) $(diagnostics) $(cpu_options) $(gc_options)" | awk '$1=$1'
+echo "$(memory_options) $(jit_options) $(diagnostic_options) $(cpu_options) $(gc_options)" | awk '$1=$1'
