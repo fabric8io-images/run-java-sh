@@ -9,9 +9,12 @@
 
 # JAVA_OPTIONS: Checked for already set options
 # JAVA_MAX_MEM_RATIO: Ratio use to calculate a default maximum Memory, in percent.
-#                     E.g. the default value "50" implies that 50% of the Memory
+#                     E.g. the "50" value implies that 50% of the Memory
 #                     given to the container is used as the maximum heap memory with
-#                     '-Xmx'. It is a heuristic and should be better backed up with real
+#                     '-Xmx'.
+#                     It defaults to "25" when the maximum amount of memory available
+#                     to the container is below 300M, otherwise defaults to "50".
+#                     It is a heuristic and should be better backed up with real
 #                     experiments and measurements.
 #                     For a good overviews what tuning options are available -->
 #                             https://youtu.be/Vt4G-pHXfs4
@@ -19,31 +22,32 @@
 #                             https://vimeo.com/album/4133413/video/181900266
 # Also note that heap is only a small portion of the memory used by a JVM. There are lot
 # of other memory areas (metadata, thread, code cache, ...) which addes to the overall
-# size. There is no easy solution for this, 50% seems to be are reasonable compromise.
-# However, when your container gets killed because of an OOM, then you should tune
-# the absolute values
-#
+# size. When your container gets killed because of an OOM, then you should tune
+# the absolute values.
 
-# Check for memory options and calculate a sane default if not given
 max_memory() {
-  # Check whether -Xmx is already given in JAVA_OPTIONS. Then we dont
-  # do anything here
+  # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
     return
   fi
 
-  # Check if explicitely disabled
-  if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
-    return
-  fi
-
-  # Check for the 'real memory size' and caluclate mx from a ratio
-  # given (default is 50%)
+  # Check for the 'real memory size' and calculate Xmx from the ratio
   if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
     local max_mem="${CONTAINER_MAX_MEMORY}"
-    local ratio=${JAVA_MAX_MEM_RATIO:-50}
-    local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-    echo "-Xmx${mx}m"
+    if [ "x$JAVA_MAX_MEM_RATIO" != x ]; then
+      local ratio="${JAVA_MAX_MEM_RATIO}"
+      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+      echo "-Xmx${mx}m"
+    else
+      if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+        # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
+        # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
+        local mx=$(echo "${max_mem} 1048576" | awk '{printf "%d\n" , ($1*25)/(100*$2) + 0.5}')
+      else
+        local mx=$(echo "${max_mem} 1048576" | awk '{printf "%d\n" , ($1*50)/(100*$2) + 0.5}')
+      fi
+      echo "-Xmx${mx}m"
+    fi
   fi
 }
 
