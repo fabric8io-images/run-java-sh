@@ -4,11 +4,14 @@
 # a run script.
 
 debug_options() {
-  if [ "x${JAVA_ENABLE_DEBUG}" != "x" -o "x${JAVA_DEBUG_ENABLE}" != "x" -o "x${JAVA_DEBUG}" != "x" ]; then
-    local debug_port=${JAVA_DEBUG_PORT:-5005}
+  if [ -n "${JAVA_ENABLE_DEBUG:-}" ] || [ -n "${JAVA_DEBUG_ENABLE:-}" ] ||  [ -n "${JAVA_DEBUG:-}" ]; then
+    local debug_port="${JAVA_DEBUG_PORT:-5005}"
     local suspend_mode="n"
-    if [ "x${JAVA_DEBUG_SUSPEND}" != "x" -a "${JAVA_DEBUG_SUSPEND}" != "false" -a "${JAVA_DEBUG_SUSPEND}" != "n" -a "${JAVA_DEBUG_SUSPEND}" != "no" -a "${JAVA_DEBUG_SUSPEND}" != "0" ]; then
+    if [ -n "${JAVA_DEBUG_SUSPEND:-}" ]; then
+      echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$';
+      if [ $? -eq 1 ]; then
         suspend_mode="y"
+      fi
     fi
     echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=${debug_port}"
   fi

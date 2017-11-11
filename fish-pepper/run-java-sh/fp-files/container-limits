@@ -29,7 +29,7 @@ core_limit() {
     if [ -r "${cpu_quota_file}" ]; then
       local cpu_quota="$(cat ${cpu_quota_file})"
       # cfs_quota_us == -1 --> no restrictions
-      if [ "x$cpu_quota" != "x-1" ]; then
+      if [ ${cpu_quota:-0} -ne -1 ]; then
         ceiling "$cpu_quota" "$cpu_period"
       fi
     fi
@@ -37,13 +37,13 @@ core_limit() {
 }
 
 max_memory() {
-  # High number which is the max limit unti which memory is supposed to be
+  # High number which is the max limit until which memory is supposed to be
   # unbounded. 
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
     local max_mem_cgroup="$(cat ${mem_file})"
-    local max_mem_cgroup=$(cat /proc/meminfo | awk '/MemTotal/ {printf "%d\n", $2 * 1024}')
-    if [ "${max_mem_cgroup}" -ne "-1" ] && [ "${max_mem_cgroup}" -lt "${max_mem_meminfo}" ]
+    local max_mem_cgroup="$(cat /proc/meminfo | awk '/MemTotal/ {printf "%d\n", $2 * 1024}')"
+    if [ ${max_mem_cgroup:-0} != -1 ] && [ ${max_mem_cgroup:-0} -lt ${max_mem_meminfo:-0} ]
     then
       echo "${max_mem_cgroup}"
     fi
@@ -51,13 +51,13 @@ max_memory() {
 }
 
 limit="$(core_limit)"
-if [ x$limit != x ]; then
+if [ -n "$limit" ]; then
    export CONTAINER_CORE_LIMIT="${limit}"
 fi
 unset limit
 
 limit="$(max_memory)"
-if [ x$limit != x ]; then
+if [ -n "$limit" ]; then
   export CONTAINER_MAX_MEMORY="$limit"
 fi
 unset limit

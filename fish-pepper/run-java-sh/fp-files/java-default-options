@@ -27,32 +27,40 @@
 
 memory_options() {
   # Check whether -Xmx is already given in JAVA_OPTIONS
-  if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
+  if echo "${JAVA_OPTIONS:-}" | grep -q -- "-Xmx"; then
     return
   fi
 
   # Check for the 'real memory size' and calculate Xmx from the ratio
-  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+  if [ -n "${CONTAINER_MAX_MEMORY:-}" ]; then
     local max_mem="${CONTAINER_MAX_MEMORY}"
-    if [ "x$JAVA_MAX_MEM_RATIO" != x ]; then
+    if [ -n "${JAVA_MAX_MEM_RATIO:-}" ]; then
       local ratio="${JAVA_MAX_MEM_RATIO}"
       local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-      echo "-Xmx${mx}m"
+      calc_mem_opt "${max_mem}" "${ratio}" "mx"
     else
       if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
         # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
         # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
-        local mx=$(echo "${max_mem} 1048576" | awk '{printf "%d\n" , ($1*25)/(100*$2) + 0.5}')
+        calc_mem_opt "${max_mem}" "25" "mx"
       else
-        local mx=$(echo "${max_mem} 1048576" | awk '{printf "%d\n" , ($1*50)/(100*$2) + 0.5}')
+        calc_mem_opt "${max_mem}" "50" "mx"
       fi
-      echo "-Xmx${mx}m"
     fi
   fi
 }
 
+calc_mem_opt() {
+  local max_mem="$1"
+  local fraction="$2"
+  local mem_opt="$3"
+  
+  local val=$(echo "${max_mem} ${fraction} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+  echo "-X${mem_opt}${val}m"
+}
+
 c2_disabled() {
-  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+  if [ -n "${CONTAINER_MAX_MEMORY:-}" ]; then
     # Disable C2 compiler when container memory <=300MB
     if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
       echo true
@@ -64,7 +72,7 @@ c2_disabled() {
 
 jit_options() {
   # Check whether -XX:TieredStopAtLevel is already given in JAVA_OPTIONS
-  if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:TieredStopAtLevel"; then
+  if echo "${JAVA_OPTIONS:-}" | grep -q -- "-XX:TieredStopAtLevel"; then
     return
   fi
   if [ $(c2_disabled) = true ]; then
@@ -74,7 +82,7 @@ jit_options() {
 
 # Switch on diagnostics except when switched off
 diagnostic_options() {
-  if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
+  if [ -n "${JAVA_DIAGNOSTICS:-}" ]; then
     echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
   fi
 }
@@ -100,7 +108,7 @@ log2_int() {
 }
 
 max2() {
-  [ $1 -le $2 ] && echo "$2" || echo "$1"
+  [ "$1" -le "$2" ] && echo "$2" || echo "$1"
 }
 
 # Replicate thread ergonomics for tiered compilation.
@@ -109,23 +117,23 @@ max2() {
 # OpenJDK / jdk8u / jdk8u / hotspot
 # src/share/vm/runtime/advancedThresholdPolicy.cpp
 ci_compiler_count() {
-  local core_limit=$1
-  local log_cpu=$(log2_int $core_limit)
-  local loglog_cpu=$(log2_int $(max2 $log_cpu 1))
-  local count=$(mul2 $(max2 $(mul2 $log_cpu $loglog_cpu) 1) 1.5)
-  local c1_count=$(max2 $(div2 $count 3) 1)
-  local c2_count=$(max2 $(sub2 $count $c1_count) 1)
-  [ $(c2_disabled) = true ] && echo "$c1_count" || echo $(add2 $c1_count $c2_count)
+  local core_limit="$1"
+  local log_cpu=$(log2_int "$core_limit")
+  local loglog_cpu=$(log2_int $(max2 "$log_cpu" 1))
+  local count=$(mul2 $(max2 $(mul2 "$log_cpu" "$loglog_cpu") 1) 1.5)
+  local c1_count=$(max2 $(div2 "$count" 3) 1)
+  local c2_count=$(max2 $(sub2 "$count" "$c1_count") 1)
+  [ $(c2_disabled) = true ] && echo "$c1_count" || echo $(add2 "$c1_count" "$c2_count")
 }
 
 cpu_options() {
-  local core_limit="${JAVA_CORE_LIMIT}"
-  if [ "x$core_limit" = "x0" ]; then
+  local core_limit="${JAVA_CORE_LIMIT:-}"
+  if [ "$core_limit" = "0" ]; then
     return
   fi
 
-  if [ "x$CONTAINER_CORE_LIMIT" != x ]; then
-    if [ "x$core_limit" = x ]; then
+  if [ -n "${CONTAINER_CORE_LIMIT:-}" ]; then
+    if [ -z ${core_limit} ]; then
       core_limit="${CONTAINER_CORE_LIMIT}"
     fi
     echo "-XX:ParallelGCThreads=${core_limit} " \
