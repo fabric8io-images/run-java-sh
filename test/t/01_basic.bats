@@ -5,7 +5,7 @@ load test_helper
 
 @test "No JAR or main class found" {
   
-  run $TEST_SHELL $RUN_JAVA
+  JAVA_APP_DIR=$RUN_JAVA_DIR run $TEST_SHELL $RUN_JAVA
   echo $status
   echo $output
 

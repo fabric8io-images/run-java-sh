@@ -45,7 +45,7 @@ auto_detect_jar_file() {
   local old_dir="$(pwd)"
   cd ${dir}
   if [ $? = 0 ]; then
-    local nr_jars="$(ls *.jar 2>/dev/null | grep -v '^original-' | wc -l | awk '{print $1}')"
+    local nr_jars="$(ls 2>/dev/null | grep -e '.*\.jar$' | grep -v '^original-' | wc -l | awk '{print $1}')"
     if [ "${nr_jars}" = 1 ]; then
       ls *.jar | grep -v '^original-'
       exit 0

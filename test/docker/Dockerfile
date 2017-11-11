@@ -15,6 +15,7 @@ RUN apt-get update \
        bash \
        ksh \
        ash \
+       zsh \
        bats
 
 COPY run_tests.sh /opt/
