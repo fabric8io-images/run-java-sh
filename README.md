@@ -65,7 +65,7 @@ For more information on fish-pepper please refer to its [documentation](https://
 
 ### Integration Test
 
-`run-java.sh` uses [bats](https://github.com/sstephenson/bats) for bash integraton testing. 
+`run-java.sh` uses [bats](https://github.com/sstephenson/bats) for bash integration testing. 
 The tests are typically fired up by using a Docker test container which contains all shells which are supported, but you can call the test locally, too.
 
 #### Running test locally
@@ -73,7 +73,7 @@ The tests are typically fired up by using a Docker test container which contains
 * Install `bats` (e.g. via `brew install bats` on macOS)
 * Goto directory `test/t`
 * Run: `bats .`
-* In order to use a different shell, set the environment variabel `$TEST_SHELL` : `TEST_SHELL=ash bats .`. This shell must be installed locally, too, of course.
+* In order to use a different shell, set the environment variable _$TEST_SHELL_ : `TEST_SHELL=ash bats .`. This shell must be installed locally, too, of course.
 * You can run individual tests by calling a teat file directly: `bats 01_basic.bats`
 
 #### Running in a Docker container
