@@ -1,5 +1,5 @@
 package io.fabric8.runsh;/*
- * 
+ *
  * Copyright 2014 Roland Huss
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,19 @@ package io.fabric8.runsh;/*
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland
@@ -30,38 +37,34 @@ import static org.junit.Assert.assertEquals;
  */
 public class RunShLoaderTest {
 
-    private String rootDir;
-
-    @Before
-    public void setup() {
-        rootDir = System.getProperty("root.dir");
-        rootDir = rootDir == null ? "" : rootDir + "/";
-    }
-
-    @Test
-    public void checkRunScript() throws IOException {
-        checkLoad(RunShLoader.getRunScript(), "fish-pepper/run-java-sh/fp-files/run-java.sh");
-        checkLoad(RunShLoader.getReadme(), "fish-pepper/run-java-sh/readme.md");
-    }
-
     @Test
     public void checkCopyScript() throws IOException {
-        File dest = File.createTempFile("run",".sh");
-        RunShLoader.copyRunScript(dest);
-        String orig = RunShLoader.getRunScript();
-        String copied = FileUtils.readFileToString(dest);
-        assertEquals(orig,copied);
+        Path dest =  Files.createTempDirectory("run");
+        RunShLoader.copyRunScript(dest.toFile());
+
+        Set<String> filesToCheck =
+            new HashSet<>(
+                Arrays.asList("run-java.sh", "container-limits",
+                              "debug-options", "java-default-options"));
+
+        for (String script : dest.toFile().list()) {
+            assertTrue(filesToCheck.remove(script));
+            String extracted = FileUtils.readFileToString(new File(dest.toFile(), script));
+            String stored = loadFromClassPath("/run-java-sh/fp-files/" + script);
+            assertEquals(stored, extracted);
+        }
+        assertEquals(0, filesToCheck.size());
     }
 
     // ======================================================================================================
 
-    private void checkLoad(String toCheck,String location) throws IOException {
-        String loadedFromFileSystem = load(location);
-        assertEquals(loadedFromFileSystem,toCheck);
-    }
 
-    private String load(String location) throws IOException {
-        return FileUtils.readFileToString(new File(rootDir + location));
+    private String loadFromClassPath(String location) {
+        try {
+            return IOUtils.toString(getClass().getResourceAsStream(location));
+        } catch (IOException e) {
+            throw new IllegalStateException("Internal: Cannot load " + location + ":" + e,e);
+        }
     }
 
 }

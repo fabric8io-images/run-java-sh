@@ -163,7 +163,7 @@ $ docker run --rm -it -v `pwd`:/test -p 80:8081 \
 
 Activating GC logs shows that the heap requirements are actually quite low, around 40MB:
 
-![GC Activity](gc_activity.png "GC Activity")
+![GC Activity](src/pics/gc_activity.png "GC Activity")
 
 ### Command
 

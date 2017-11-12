@@ -2,6 +2,8 @@ package io.fabric8.runsh;
 
 import java.io.*;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -9,22 +11,15 @@ import org.apache.commons.io.IOUtils;
  */
 public class RunShLoader
 {
-    // Print out run script when called
-    public static void main( String[] args ) {
-        System.out.println(getRunScript());
-    }
+    public static final String[] LOCATION_RUN_SCRIPTS = new String[] {
+            "/run-java-sh/fp-files/container-limits",
+            "/run-java-sh/fp-files/debug-options",
+            "/run-java-sh/fp-files/java-default-options",
+            "/run-java-sh/fp-files/run-java.sh"
+    };
 
-    public static final String LOCATION_RUN_SCRIPT = "/run-java-sh/fp-files/run-java.sh";
     public static final String LOCATION_README = "/run-java-sh/readme.md";
 
-    /**
-     * Get the run script as a string
-     *
-     * @return run script as string
-     */
-    public static String getRunScript() {
-        return loadFromClassPath(LOCATION_RUN_SCRIPT);
-    }
 
     /**
      * Load and return README from classpath
@@ -35,17 +30,21 @@ public class RunShLoader
         return loadFromClassPath(LOCATION_README);
     }
 
+
     /**
-     * Copy the run script to a destination in the file system
+     * Copy the run scripts to a destination in the file system
      *
-     * @param destination where to copy run script
+     * @param destination where to copy run script. Must be a directory.
      */
     public static void copyRunScript(File destination) throws IOException {
-        FileWriter out = new FileWriter(destination);
-        try {
-            IOUtils.copy(getInputStream(LOCATION_RUN_SCRIPT), out);
-        } finally {
-            out.close();
+        if (!destination.isDirectory()) {
+            throw new IOException(String.format("Destination %s is not a directory", destination));
+        }
+        for (String script : LOCATION_RUN_SCRIPTS) {
+            File targetFile = new File(destination, FilenameUtils.getName(script));
+            try (FileWriter out = new FileWriter(targetFile)) {
+                IOUtils.copy(getInputStream(script), out);
+            }
         }
     }
 
@@ -62,6 +61,5 @@ public class RunShLoader
     private static InputStream getInputStream(String location) {
         return RunShLoader.class.getResourceAsStream(location);
     }
-
 
 }
