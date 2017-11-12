@@ -13,6 +13,7 @@ Some highlights:
   - ash
   - dash
   - ksh
+  
   `zsh` is *not supported* yet.
 * Support for switching on debugging via the environment variable `JAVA_DEBUG`
 * Autodetection of JAR files within a directory
