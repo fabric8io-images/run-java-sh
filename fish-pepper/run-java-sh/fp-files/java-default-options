@@ -173,9 +173,13 @@ cpu_options() {
 }
 
 # These parameters are necessary when running parallel GC if you want to use the Min and Max Heap Free ratios.
+# Skip setting gc_options if any other GC is set in JAVA_OPTIONS.
 # -XX:GCTimeRatio=4
 # -XX:AdaptiveSizePolicyWeight=90
 gc_options() {
+    if echo "${JAVA_OPTIONS}" | grep -q -- "Use.*GC"; then
+      return
+    fi
     echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
 }
 
