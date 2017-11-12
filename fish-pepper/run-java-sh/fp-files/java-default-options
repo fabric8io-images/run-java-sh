@@ -25,7 +25,7 @@
 # size. When your container gets killed because of an OOM, then you should tune
 # the absolute values.
 # JAVA_INIT_MEM_RATIO: Ratio use to calculate a default intial heap Memory, in percent. 
-# B                    By default this value is not set.
+#                      By default this value is not set.
 
 memory_options() {
   echo "$(initial_memory) $(max_memory)"
