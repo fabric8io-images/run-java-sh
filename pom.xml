@@ -4,7 +4,7 @@
 
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>run-java-sh</name>
@@ -34,11 +34,11 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.4.0</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <mainClass>io.fabric8.runsh.RunShLoader</mainClass>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
       </plugin>
     </plugins>
