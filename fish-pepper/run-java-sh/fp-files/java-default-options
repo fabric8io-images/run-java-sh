@@ -172,21 +172,21 @@ cpu_options() {
   fi
 }
 
+#-XX:MinHeapFreeRatio=20  These parameters tell the heap to shrink aggressively and to grow conservatively.
+#-XX:MaxHeapFreeRatio=40  Thereby optimizing the amount of memory available to the operating system.
+heap_ratio() {
+  echo "-XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40"
+}
+
 # These parameters are necessary when running parallel GC if you want to use the Min and Max Heap Free ratios.
 # Skip setting gc_options if any other GC is set in JAVA_OPTIONS.
 # -XX:GCTimeRatio=4
 # -XX:AdaptiveSizePolicyWeight=90
 gc_options() {
-    if echo "${JAVA_OPTIONS}" | grep -q -- "Use.*GC"; then
+    if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:.*Use.*GC"; then
       return
     fi
     echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
-}
-
-#-XX:MinHeapFreeRatio=20  These parameters tell the heap to shrink aggressively and to grow conservatively.
-#-XX:MaxHeapFreeRatio=40  Thereby optimizing the amount of memory available to the operating system.
-heap_ratio() {
-  echo "-XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40"
 }
 
 # Echo options, trimming trailing and multiple spaces
