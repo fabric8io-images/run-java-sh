@@ -24,8 +24,37 @@
 # of other memory areas (metadata, thread, code cache, ...) which addes to the overall
 # size. When your container gets killed because of an OOM, then you should tune
 # the absolute values.
+# JAVA_INIT_MEM_RATIO: Ratio use to calculate a default intial heap Memory, in percent. 
+#                      By default this value is not set.
 
 memory_options() {
+  echo "$(initial_memory) $(max_memory)"
+  return
+}
+
+c2_disabled() {
+  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+    # Disable C2 compiler when container memory <=300MB
+    if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+      echo true
+      return
+    fi
+  fi
+  echo false
+}
+
+jit_options() {
+  # Check whether -XX:TieredStopAtLevel is already given in JAVA_OPTIONS
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:TieredStopAtLevel"; then
+    return
+  fi
+  if [ $(c2_disabled) = true ]; then
+    echo "-XX:TieredStopAtLevel=1"
+  fi
+}
+
+# Check for memory options and set max heap size if needed
+max_memory() { 
   # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
     return
@@ -51,26 +80,30 @@ memory_options() {
   fi
 }
 
-c2_disabled() {
-  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
-    # Disable C2 compiler when container memory <=300MB
-    if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
-      echo true
-      return
-    fi
-  fi
-  echo false
-}
-
-jit_options() {
-  # Check whether -XX:TieredStopAtLevel is already given in JAVA_OPTIONS
-  if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:TieredStopAtLevel"; then
+# Check for memory options and set initial heap size if requested
+initial_memory() {
+  # Check whether -Xms is already given in JAVA_OPTIONS. Then we dont
+  # do anything here
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-Xms"; then
     return
   fi
-  if [ $(c2_disabled) = true ]; then
-    echo "-XX:TieredStopAtLevel=1"
+
+  # Check if value set
+  if [ -z "$JAVA_INIT_MEM_RATIO" ]; then
+    return
+  fi
+
+  # Check for the 'real memory size' and caluclate Xms from a ratio
+  # given 
+  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+    local max_mem="${CONTAINER_MAX_MEMORY}"
+    local ratio=${JAVA_INIT_MEM_RATIO}
+    local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+    echo "-Xms${mx}m"
   fi
 }
+
+
 
 # Switch on diagnostics except when switched off
 diagnostic_options() {

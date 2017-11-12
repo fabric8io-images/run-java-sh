@@ -42,7 +42,7 @@ max_memory() {
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
     local max_mem_cgroup="$(cat ${mem_file})"
-    local max_mem_cgroup=$(cat /proc/meminfo | awk '/MemTotal/ {printf "%d\n", $2 * 1024}')
+    local max_mem_meminfo=$(cat /proc/meminfo | awk '/MemTotal/ {printf "%d\n", $2 * 1024}')
     if [ "${max_mem_cgroup}" -ne "-1" ] && [ "${max_mem_cgroup}" -lt "${max_mem_meminfo}" ]
     then
       echo "${max_mem_cgroup}"
