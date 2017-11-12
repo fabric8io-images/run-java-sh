@@ -32,6 +32,10 @@ assert_jvmarg() {
   [[ $output == *"JVM::$1"* ]]
 }
 
+assert_ps() {
+  local val=$(extract_via_regexp "PS::" "[^"$'\n'"]*$1[^"$'\n'"]*")
+  [ -n "$val" ]
+}
 assert_command_contains() {
   [[ $lines[0] == *"$1"* ]]
 }
