@@ -74,3 +74,21 @@ load test_helper
   assert_command_contains "-cp .:$d"
   assert_status 0
 }
+
+@test "JAVA_APP_NAME set" {  
+  d=$(mktmpdir "java-appname")
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
+  JAVA_APP_DIR=$d JAVA_APP_NAME="ghandi" run $TEST_SHELL $RUN_JAVA
+  echo $status
+  echo $output
+  
+  assert_env JAVA_APP_NAME ghandi
+  set +e
+  eval "$TEST_SHELL -c 'exec -a test true 2>/dev/null'"
+  local rc=$?
+  set -e
+  if [ $rc -eq 0 ]; then
+    assert_ps ghandi
+  fi
+  assert_status 0
+}
