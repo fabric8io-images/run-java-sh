@@ -1,10 +1,32 @@
 ## run-java.sh
 
-`run-java.sh` is a universal startup script for Java applications. It can be influenced by setting the environment variables described below.
+[![CircleCI](https://circleci.com/gh/fabric8io-images/run-java-sh.svg?style=svg)](https://circleci.com/gh/fabric8io-images/run-java-sh) | [Usage](fish-pepper/run-java-sh/readme.md)
 
-[run-java.sh](fish-pepper/run-java-sh/fp-files/run-java.sh) can be used directly or it can be easily included in various build systems:
+`run-java.sh` is a universal startup script for Java applications, especially crafted for being run from within containers.
 
-### Maven Builds
+Some highlights:
+
+* Chooses sane default for JVM parameters based on container constraints on memory and cpus. See this [research investigation](TUNING.md) by [@astefanutti](https://github.com/astefanutti) which explains the rational behind the parameters chosen.
+* Supports
+  - bash
+  - sh (plain bourne shell)
+  - ash
+  - dash
+  - ksh
+  `zsh` is *not supported* yet.
+* Support for switching on debugging via the environment variable `JAVA_DEBUG`
+* Autodetection of JAR files within a directory
+* Support for [fish-pepper](https://github.com/fabric8io-images/fish-pepper) so that this script can be used as a fish-pepper block
+* Integration tests for all those shells mentioned above. See the build on [CircleCI](https://circleci.com/gh/fabric8io-images/run-java-sh) for more details. Look in the "Artifacts" tab of a test run for the test results.
+* Maven artefacts for easy usage of this script in Maven projects.
+ 
+The full documentation for `run-java.sh` can be found in this [README](fish-pepper/run-java-sh/readme.md)
+
+### Installation
+
+[run-java.sh](fish-pepper/run-java-sh/fp-files/run-java.sh) can be used directly by copying all files from [fish-pepper/run-java-sh/fp-files](fish-pepper/run-java-sh/fp-files) to a directory in your container or it can be easily included in various build systems.
+
+#### Maven Builds
 
 Maven builds can declare a dependency on
 
@@ -12,26 +34,19 @@ Maven builds can declare a dependency on
 <dependency>
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1-SNAPSHOT</version>
 </dependency>
 ```
 
 Then, within your code the script can be obtained with
 
 ```java
-// Script as string
-String script = RunShLoader.getRunScript();
 
 // Copy it to a destination, possibly somwhere below target/
-RunShLoader.copyRunScript(new File("target/assembly/run-java.sh"));
+RunShLoader.copyRunScript(new File("target/assembly/startup/"));
 ```
 
-You can also use the run script directly from this build:
-```
-mvn exec:java | sh
-```
-
-### fish-pepper
+#### fish-pepper
 
 [fish-pepper](https://github.com/fabric8io-images/fish-pepper) is a Docker build composition tool based on templates. It has a concept called **blocks** which is a collection of templates and files to be copied into a Docker image. Blocks can also be obtained remotely from a Git repository. In order to use this startup script for fish-pepper, you need to add the following refernce to the main configuration `fish-pepper.yml` in you Docker image build:
 
@@ -46,19 +61,44 @@ From within the Docker templates you then can reference this block as usual e.g.
 
 For more information on fish-pepper please refer to its [documentation](https://github.com/fabric8io-images/fish-pepper/README.md).
 
-### Environment variables
 
-The most important environment variables are
+### Integration Test
 
-* **JAVA_APP_DIR** directory holding jar file.
-* **JAVA_MAIN_CLASS** A main class to use as argument for `java`. When this environment variable is given. If a file `$JAVA_APP_DIR/classpath` is given this will be used, otherwise all jar files in `$JAVA_APP_DIR` are added to the classpath in alphabetical order. The directory `$JAVA_APP_DIR`  itself is added to the classpath, too.
-* **JAVA_APP_JAR** A jar file with an appropriate manifest so that it can be started with `java -jar` if no `$JAVA_MAIN_CLASS` is set. In all cases this jar file is added to the classpath, too.
-* **JAVA_OPTIONS** options to add when calling `java`
+`run-java.sh` uses [bats](https://github.com/sstephenson/bats) for bash integraton testing. 
+The tests are typically fired up by using a Docker test container which contains all shells which are supported, but you can call the test locally, too.
 
-If the *main class* modus is used, the script tries to lookup a classpath from the file `classpath`. This could e.g. be created by a Maven plugin to keep the proper maven dependency order.
+#### Running test locally
 
-If a script `run-java-options` is on your path, it is called to obtain startup parameters for an agent like [agent bond](https://github.com/fabric8io/agent-bond), a multipurpose agent currently including [Jolokia](http://www.jolokia.org) and [jmx_exporter](https://github.com/prometheus/jmx_exporter), a Prometheus metrics exporting agent. More information can be found in the documentation to agent bond, which also provided a fish-pepper block.
+* Install `bats` (e.g. via `brew install bats` on macOS)
+* Goto directory `test/t`
+* Run: `bats .`
+* In order to use a different shell, set the environment variabel `$TEST_SHELL` : `TEST_SHELL=ash bats .`. This shell must be installed locally, too, of course.
+* You can run individual tests by calling a teat file directly: `bats 01_basic.bats`
 
-Remote debugging over port 5005 can be switched on by setting the environment variable `JAVA_ENABLE_DEBUG`.
+#### Running in a Docker container
 
-These and other supported environment variables are described in detail in a [separate document](fish-pepper/run-java-sh/readme.md).
+* Be sure to have a local Docker daemon running and accessible
+* Then just call `test/run_all.sh`
+* The following environment variables can influence this script:
+  - `JDK_TAG` : Which JVM to use for testing. Should be `openjdk8` or `openjdk9`
+  - `MEMORY` : A memory limit to set to the container
+  - `CPUS` : Number of cores to constraint the container to
+  - `REPORT_DIR` : Directory where to store the reports. By default this in the top-level `reports/` directory. 
+
+Example:
+
+```
+JDK_TAG=openjdk9 MEMORY=400m CPUS=1.5 test/run_all.sh
+```
+
+The builder containers can be recreated from the Dockerfile in `test/docker`. Look into the [CircleCI build](.circleci/config.yml) for how these containers are built.
+
+#### CircleCI
+
+The integrations tests run on [CircleCI](https://circleci.com/) on every commit and PR. The configuration can be found in [config.yml](.circleci/config.yml). You find the test reporst in the "Artifacts" tap of a build, e.g. like [here](https://circleci.com/gh/fabric8io-images/run-java-sh/127#artifacts/containers/0).
+
+Currently the following combinations are tested
+
+* OpenJDK 8 and OpenJDK 9
+* Memory limits: unlimited, 160m, 400m
+* CPUs: unlimited, 1.5

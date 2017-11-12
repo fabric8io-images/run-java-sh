@@ -12,7 +12,7 @@
 # Fail on a single failed command in a pipeline (if possible)
 (set -o | grep -q pipefail) && set -o pipefail
 
-# Fail on error
+# Fail on error and undefined vars
 set -eu
 
 # ksh is different for defining local vars

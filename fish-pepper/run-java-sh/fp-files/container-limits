@@ -8,6 +8,11 @@
 #
 # This script is meant to be sourced.
 
+# ksh is different for defining local vars
+if [ -n "${KSH_VERSION:-}" ]; then
+  alias local=typeset  
+fi
+
 ceiling() {
   awk -vnumber="$1" -vdiv="$2" '
     function ceiling(x){

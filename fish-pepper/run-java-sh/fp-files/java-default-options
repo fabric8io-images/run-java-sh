@@ -25,6 +25,11 @@
 # size. When your container gets killed because of an OOM, then you should tune
 # the absolute values.
 
+# ksh is different for defining local vars
+if [ -n "${KSH_VERSION:-}" ]; then
+  alias local=typeset  
+fi
+
 memory_options() {
   # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS:-}" | grep -q -- "-Xmx"; then
