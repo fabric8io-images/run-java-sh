@@ -183,7 +183,7 @@ heap_ratio() {
 # -XX:GCTimeRatio=4
 # -XX:AdaptiveSizePolicyWeight=90
 gc_options() {
-    if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:.*Use.*GC"; then
+    if echo "${JAVA_OPTIONS:-}" | grep -q -- "-XX:.*Use.*GC"; then
       return
     fi
     echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
