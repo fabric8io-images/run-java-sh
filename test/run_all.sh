@@ -28,7 +28,7 @@ if [[ ${REPORT_DIR} != /* ]]; then
 fi
 
 run_opts="-e RUN_JAVA_DIR=/opt/test -e REPORT_DIR=/opt/reports"
-diag="- JDK:\t${JDK_TAG}\n- Report:\t$REPORT_DIR"
+diag="- JDK:\t\t${JDK_TAG}\n- Report:\t$REPORT_DIR"
 if [ -n "${MEMORY}" ]; then
   mem_opts="--memory=$MEMORY -e MEMORY=$MEMORY"
   diag="$diag\n- Memory:\t$MEMORY"

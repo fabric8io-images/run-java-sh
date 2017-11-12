@@ -33,38 +33,37 @@ if [ -n "${KSH_VERSION:-}" ]; then
 fi
 
 memory_options() {
-  echo "$(initial_memory) $(max_memory)"
+  echo "$(calc_init_memory) $(calc_max_memory)"
   return
 }
 
 # Check for memory options and set max heap size if needed
-max_memory() { 
+calc_max_memory() { 
   # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS:-}" | grep -q -- "-Xmx"; then
     return
   fi
 
+  if [ -z "${CONTAINER_MAX_MEMORY:-}" ]; then
+    return
+  fi
+  
   # Check for the 'real memory size' and calculate Xmx from the ratio
-  if [ -n "${CONTAINER_MAX_MEMORY:-}" ]; then
-    local max_mem="${CONTAINER_MAX_MEMORY}"
-    if [ -n "${JAVA_MAX_MEM_RATIO:-}" ]; then
-      local ratio="${JAVA_MAX_MEM_RATIO}"
-      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-      calc_mem_opt "${max_mem}" "${ratio}" "mx"
+  if [ -n "${JAVA_MAX_MEM_RATIO:-}" ]; then
+    calc_mem_opt "${CONTAINER_MAX_MEMORY}" "${JAVA_MAX_MEM_RATIO}" "mx"
+  else
+    if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+      # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
+      # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
+      calc_mem_opt "${CONTAINER_MAX_MEMORY}" "25" "mx"
     else
-      if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
-        # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
-        # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
-        calc_mem_opt "${max_mem}" "25" "mx"
-      else
-        calc_mem_opt "${max_mem}" "50" "mx"
-      fi
+      calc_mem_opt "${CONTAINER_MAX_MEMORY}" "50" "mx"
     fi
   fi
 }
 
 # Check for memory options and set initial heap size if requested
-initial_memory() {
+calc_init_memory() {
   # Check whether -Xms is already given in JAVA_OPTIONS. Then we dont
   # do anything here
   if echo "${JAVA_OPTIONS:-}" | grep -q -- "-Xms"; then
@@ -72,18 +71,21 @@ initial_memory() {
   fi
   
   # Check if value set
-  if [ -z "${JAVA_INIT_MEM_RATIO:-}" ]; then
+  if [ -z "${JAVA_INIT_MEM_RATIO:-}" ] || [ -z "${CONTAINER_MAX_MEMORY:-}" ]; then
     return
   fi
   
-  # Check for the 'real memory size' and caluclate Xms from a ratio
-  # given 
-  if [ -n "${CONTAINER_MAX_MEMORY:-}" ]; then
-    local max_mem="${CONTAINER_MAX_MEMORY}"
-    local ratio=${JAVA_INIT_MEM_RATIO}
-    local ms=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-    echo "-Xms${ms}m"
-  fi
+  # Caluclate Xms from a ratio given 
+  calc_mem_opt "${CONTAINER_MAX_MEMORY}" "${JAVA_INIT_MEM_RATIO}" "ms"
+}
+
+calc_mem_opt() {
+  local max_mem="$1"
+  local fraction="$2"
+  local mem_opt="$3"
+  
+  local val=$(echo "${max_mem} ${fraction} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+  echo "-X${mem_opt}${val}m"
 }
 
 c2_disabled() {
@@ -105,16 +107,6 @@ jit_options() {
   if [ $(c2_disabled) = true ]; then
     echo "-XX:TieredStopAtLevel=1"
   fi
-}
-
-
-calc_mem_opt() {
-  local max_mem="$1"
-  local fraction="$2"
-  local mem_opt="$3"
-  
-  local val=$(echo "${max_mem} ${fraction} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-  echo "-X${mem_opt}${val}m"
 }
 
 # Switch on diagnostics except when switched off
