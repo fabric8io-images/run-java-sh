@@ -8,17 +8,6 @@
 #
 # This script is meant to be sourced.
 
-ceiling() {
-  awk -vnumber="$1" -vdiv="$2" '
-    function ceiling(x){
-      return x%1 ? int(x)+1 : x
-    }
-    BEGIN{
-      print ceiling(number/div)
-    }
-  '
-}
-
 # Based on the cgroup limits, figure out the max number of core we should utilize
 core_limit() {
   local cpu_period_file="/sys/fs/cgroup/cpu/cpu.cfs_period_us"
@@ -30,7 +19,7 @@ core_limit() {
       local cpu_quota="$(cat ${cpu_quota_file})"
       # cfs_quota_us == -1 --> no restrictions
       if [ ${cpu_quota:-0} -ne -1 ]; then
-        ceiling "$cpu_quota" "$cpu_period"
+        echo $(int "$cpu_quota" "$cpu_period" "ceil(\$1/\$2)")
       fi
     fi
   fi

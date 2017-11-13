@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Math util functions
+
+calc() {
+  local format="${@:$#}"
+  local result="${@:$#-1:1}"
+  echo "${@:1:$#-2}" | awk -v format="${format}" '
+    function ceil(x) {
+      return x%1 ? int(x)+1 : x
+    }
+    function log2(x) {
+      return log(x)/log(2)
+    }
+    function max2(x,y) {
+      return x > y ? x : y
+    }
+    {printf format,'"${result}"'}
+  '
+}
+
+int() {
+  echo "$(calc "$@" "%d\n")"
+}

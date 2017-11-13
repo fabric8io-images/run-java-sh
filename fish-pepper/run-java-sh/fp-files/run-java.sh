@@ -85,6 +85,9 @@ load_env() {
   # Configuration stuff is read from this file
   local run_env_sh="run-env.sh"
 
+  # Source math functions
+  . "${script_dir}/math-functions"
+
   # Load default default config
   if [ -f "${script_dir}/${run_env_sh}" ]; then
     . "${script_dir}/${run_env_sh}"
