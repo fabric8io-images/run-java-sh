@@ -227,8 +227,14 @@ startup() {
   if [ -n "${JAVA_MAIN_CLASS:-}" ] ; then
      args="${JAVA_MAIN_CLASS}"
   else
+     # Either JAVA_MAIN_CLASS or JAVA_APP_JAR has been set in load_env()
+     # So no ${JAVA_APP_JAR:-} safeguard is needed here. Actually its good when the script
+     # dies here if JAVA_APP_JAR would not be set for some reason (see option `set -u` above)
      args="-jar ${JAVA_APP_JAR}"
   fi
+  # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg. 
+  # However it could be two args (see above). zsh doesn't like this btw, but zsh is not 
+  # supported anyway.
   echo exec $(get_exec_args) java $(get_java_options) -cp "$(get_classpath)" ${args} $*
   exec $(get_exec_args) java $(get_java_options) -cp "$(get_classpath)" ${args} $*
 }

@@ -3,11 +3,6 @@
 # Check for debug options and echo them if enabled. Meant to be included by
 # a run script.
 
-# ksh is different for defining local vars
-if [ -n "${KSH_VERSION:-}" ]; then
-  alias local=typeset  
-fi
-
 debug_options() {
   if [ -n "${JAVA_ENABLE_DEBUG:-}" ] || [ -n "${JAVA_DEBUG_ENABLE:-}" ] ||  [ -n "${JAVA_DEBUG:-}" ]; then
     local debug_port="${JAVA_DEBUG_PORT:-5005}"

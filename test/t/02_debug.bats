@@ -28,9 +28,11 @@ load test_helper
 }
 
 @test "JAVA_DEBUG_SUSPEND false|n|no|0" {
+  d=$(mktmpdir "debug_suspend")
   for i in false n no 0
   do
-    JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=$i run $TEST_SHELL $DEBUG_OPTIONS
+    create_test_include_script "$d/$i.sh" $DEBUG_OPTIONS
+    JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=$i run $TEST_SHELL "$d/$i.sh"
     echo $output
     assert_regexp "suspend=n"
     assert_status 0    
