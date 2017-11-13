@@ -156,6 +156,23 @@ jobs:
             JDK_TAG: openjdk9
           command: test/run_all.sh
 
+      - run:
+          name: Run tests for JDK 8 / 300m / 2 cpus
+          environment:
+            MEMORY: 300m
+            CPUS: "2"
+            REPORT_DIR: reports/300m-2cpus/jdk8
+            JDK_TAG: openjdk8
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 9 / 300m / 2 cpus
+          environment:
+            MEMORY: 300m
+            CPUS: "2"
+            REPORT_DIR: reports/300m-2cpus/jdk9
+            JDK_TAG: openjdk9
+          command: test/run_all.sh
 
       - store_artifacts:
           path: reports

@@ -27,11 +27,6 @@
 # JAVA_INIT_MEM_RATIO: Ratio use to calculate a default intial heap Memory, in percent. 
 #                      By default this value is not set.
 
-# ksh is different for defining local vars
-if [ -n "${KSH_VERSION:-}" ]; then
-  alias local=typeset  
-fi
-
 memory_options() {
   echo "$(calc_init_memory) $(calc_max_memory)"
   return

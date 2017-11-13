@@ -15,7 +15,6 @@ assert_status() {
   [ $status = $1 ]
 }
 
-
 assert_env() {
   assert_key_value_param "ENV::" $1 $2
 }
@@ -81,4 +80,30 @@ extract_via_regexp() {
   local tomatch=$2
   local re="${prefix}(${tomatch})"$'\n'
   [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"  
+}
+
+create_test_include_script() {
+  local out=$1
+  local script=$2
+  local extra=$3
+
+cat - <<EOT >$out
+
+if [ \$TEST_SHELL = "ksh" ]; then
+  alias local=typeset  
+fi
+  . $script
+$extra
+EOT
+}
+
+ceiling() {
+  awk -vnumber="$1" '
+    function ceiling(x){
+      return x%1 ? int(x)+1 : x
+    }
+    BEGIN{
+      print ceiling(number)
+    }
+  '
 }
