@@ -19,7 +19,7 @@ core_limit() {
       local cpu_quota="$(cat ${cpu_quota_file})"
       # cfs_quota_us == -1 --> no restrictions
       if [ ${cpu_quota:-0} -ne -1 ]; then
-        echo $(int "ceil(\$1/\$2)" "$cpu_quota" "$cpu_period")
+        echo $(int 'ceil($1/$2)' "$cpu_quota" "$cpu_period")
       fi
     fi
   fi
