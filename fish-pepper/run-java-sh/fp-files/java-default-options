@@ -79,7 +79,7 @@ calc_mem_opt() {
   local fraction="$2"
   local mem_opt="$3"
 
-  local val=$(calc "${max_mem}" "${fraction}" "ceil(\$1*\$2/100/1048576)" "%d\n")
+  local val=$(calc "${max_mem}" "${fraction}" "round(\$1*\$2/100/1048576)" "%d\n")
   echo "-X${mem_opt}${val}m"
 }
 

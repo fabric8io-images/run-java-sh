@@ -15,6 +15,9 @@ calc() {
     function max2(x,y) {
       return x > y ? x : y
     }
+    function round(x) {
+      return int(x + 0.5)
+    }
     {printf format,'"${result}"'}
   '
 }
