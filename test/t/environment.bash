@@ -9,6 +9,7 @@ RUN_JAVA_DIR=$(cd "$BATS_TEST_DIRNAME/../../fish-pepper/run-java-sh/fp-files" &&
 RUN_JAVA="${RUN_JAVA_DIR}/run-java.sh"
 
 # Helper scripts
+MATH_FUNCTIONS="${RUN_JAVA_DIR}/math-functions"
 DEBUG_OPTIONS="${RUN_JAVA_DIR}/debug-options"
 CONTAINER_LIMITS="${RUN_JAVA_DIR}/container-limits"
 JAVA_DEFAULT_OPTIONS="${RUN_JAVA_DIR}/java-default-options"

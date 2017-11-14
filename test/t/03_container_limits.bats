@@ -5,7 +5,7 @@ load test_helper
 
 @test "CONTAINER_MAX_MEMORY set" {
   d=$(mktmpdir "maxmem")
-  create_test_include_script "$d/mem_test.sh" $CONTAINER_LIMITS 'echo $CONTAINER_MAX_MEMORY'
+  create_test_include_script "$d/mem_test.sh" 'echo $CONTAINER_MAX_MEMORY' $MATH_FUNCTIONS $CONTAINER_LIMITS
   run $TEST_SHELL $d/mem_test.sh
   echo "Status: $status"
   echo "Memory detected: $output"
@@ -21,7 +21,7 @@ load test_helper
 
 @test "CONTAINER_CORE_LIMIT set" {
   d=$(mktmpdir "maxcpus")
-  create_test_include_script "$d/cpus_test.sh" $CONTAINER_LIMITS 'echo $CONTAINER_CORE_LIMIT'
+  create_test_include_script "$d/cpus_test.sh" 'echo $CONTAINER_CORE_LIMIT' $MATH_FUNCTIONS $CONTAINER_LIMITS
   run $TEST_SHELL $d/cpus_test.sh
   echo "Status: $status"
   echo "CPUs detected: $output"
