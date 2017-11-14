@@ -2,7 +2,6 @@ package io.fabric8.runsh;
 
 import java.io.*;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
