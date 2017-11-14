@@ -15,6 +15,7 @@ public class RunShLoader
             "/run-java-sh/fp-files/container-limits",
             "/run-java-sh/fp-files/debug-options",
             "/run-java-sh/fp-files/java-default-options",
+            "/run-java-sh/fp-files/math-functions",
             "/run-java-sh/fp-files/run-java.sh"
     };
 
