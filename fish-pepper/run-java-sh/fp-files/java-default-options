@@ -78,8 +78,8 @@ calc_mem_opt() {
   local max_mem="$1"
   local fraction="$2"
   local mem_opt="$3"
-  
-  local val=$(echo "${max_mem} ${fraction} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+
+  local val=$(int 'round($1*$2/100/1048576)' "${max_mem}" "${fraction}")
   echo "-X${mem_opt}${val}m"
 }
 
@@ -111,30 +111,6 @@ diagnostic_options() {
   fi
 }
 
-add2() {
-  echo "$1" "$2" | awk '{printf "%d\n", $1+$2}'
-}
-
-div2() {
-  echo "$1" "$2" | awk '{printf "%d\n", $1/$2}'
-}
-
-mul2() {
-  echo "$1" "$2" | awk '{printf "%d\n", $1*$2}'
-}
-
-sub2() {
-  echo "$1" "$2" | awk '{printf "%d\n", $1-$2}'
-}
-
-log2_int() {
-  echo "$1" | awk '{printf "%d\n", log($1)/log(2)}'
-}
-
-max2() {
-  [ "$1" -le "$2" ] && echo "$2" || echo "$1"
-}
-
 # Replicate thread ergonomics for tiered compilation.
 # This could ideally be skipped when tiered compilation is disabled.
 # The algorithm is taken from:
@@ -142,12 +118,12 @@ max2() {
 # src/share/vm/runtime/advancedThresholdPolicy.cpp
 ci_compiler_count() {
   local core_limit="$1"
-  local log_cpu=$(log2_int "$core_limit")
-  local loglog_cpu=$(log2_int $(max2 "$log_cpu" 1))
-  local count=$(mul2 $(max2 $(mul2 "$log_cpu" "$loglog_cpu") 1) 1.5)
-  local c1_count=$(max2 $(div2 "$count" 3) 1)
-  local c2_count=$(max2 $(sub2 "$count" "$c1_count") 1)
-  [ $(c2_disabled) = true ] && echo "$c1_count" || echo $(add2 "$c1_count" "$c2_count")
+  local log_cpu=$(int 'log2($1)' "$core_limit")
+  local loglog_cpu=$(int 'log2(max2($1,1))' "$log_cpu")
+  local count=$(int 'max2($1*$2,1)*3/2' "$log_cpu" "$loglog_cpu")
+  local c1_count=$(int 'max2($1/3,1)' "$count")
+  local c2_count=$(int 'max2($1-$2,1)' "$count" "$c1_count")
+  [ $(c2_disabled) = true ] && echo "$c1_count" || echo $(int '$1+$2' "$c1_count" "$c2_count")
 }
 
 cpu_options() {

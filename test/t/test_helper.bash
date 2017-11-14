@@ -84,15 +84,21 @@ extract_via_regexp() {
 
 create_test_include_script() {
   local out=$1
-  local script=$2
-  local extra=$3
+  local extra=$2
+  shift 2
+  local body=""
+  for script in "$@"
+  do
+    body="$body . $script\n"
+  done
+  body=$(printf "$body")
 
 cat - <<EOT >$out
 
 if [ \$TEST_SHELL = "ksh" ]; then
-  alias local=typeset  
+  alias local=typeset
 fi
-  . $script
+$body
 $extra
 EOT
 }

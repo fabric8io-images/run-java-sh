@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Math util functions
+
+calc() {
+  local formula="$1"
+  local format="$2"
+  shift 2
+  echo "$@" | awk -v format="${format}" '
+    function ceil(x) {
+      return x%1 ? int(x)+1 : x
+    }
+    function log2(x) {
+      return log(x)/log(2)
+    }
+    function max2(x,y) {
+      return x > y ? x : y
+    }
+    function round(x) {
+      return int(x + 0.5)
+    }
+    {printf format,'"${formula}"'}
+  '
+}
+
+int() {
+  local formula="$1"
+  shift 1
+  echo "$(calc "${formula}" "%d\n" "$@")"
+}

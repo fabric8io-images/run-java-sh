@@ -2,7 +2,6 @@ package io.fabric8.runsh;
 
 import java.io.*;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -15,6 +14,7 @@ public class RunShLoader
             "/run-java-sh/fp-files/container-limits",
             "/run-java-sh/fp-files/debug-options",
             "/run-java-sh/fp-files/java-default-options",
+            "/run-java-sh/fp-files/math-functions",
             "/run-java-sh/fp-files/run-java.sh"
     };
 
