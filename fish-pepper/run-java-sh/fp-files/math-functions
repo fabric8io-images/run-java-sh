@@ -5,7 +5,8 @@
 calc() {
   local formula="$1"
   local format="$2"
-  echo "${@:3:$#-2}" | awk -v format="${format}" '
+  shift 2
+  echo "$@" | awk -v format="${format}" '
     function ceil(x) {
       return x%1 ? int(x)+1 : x
     }
@@ -23,5 +24,7 @@ calc() {
 }
 
 int() {
-  echo "$(calc "$1" "%d\n" "${@:2:$#-1}")"
+  local formula="$1"
+  shift 1
+  echo "$(calc "${formula}" "%d\n" "$@")"
 }
