@@ -48,7 +48,7 @@ load test_helper
   assert_command_contains "-cp ."
   assert_command_contains "-jar $d/test.jar"
   assert_command_contains_not "TestMain"
-  
+
   assert_status 0
 }
 
@@ -58,7 +58,7 @@ load test_helper
   JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
   echo $status
   echo $output
-  
+
   assert_regexp "no main manifest"
   assert_status 1
 }
@@ -69,19 +69,19 @@ load test_helper
   JAVA_APP_DIR=$d JAVA_MAIN_CLASS=TestMain run $TEST_SHELL $RUN_JAVA
   echo $status
   echo $output
-  
+
   assert_command_contains "TestMain"
   assert_command_contains "-cp .:$d"
   assert_status 0
 }
 
-@test "JAVA_APP_NAME set" {  
+@test "JAVA_APP_NAME set" {
   d=$(mktmpdir "java-appname")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
   JAVA_APP_DIR=$d JAVA_APP_NAME="ghandi" run $TEST_SHELL $RUN_JAVA
   echo $status
   echo $output
-  
+
   assert_env JAVA_APP_NAME ghandi
   set +e
   eval "$TEST_SHELL -c 'exec -a test true 2>/dev/null'"
