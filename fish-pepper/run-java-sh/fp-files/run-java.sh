@@ -231,10 +231,12 @@ debug_options() {
     local debug_port="${JAVA_DEBUG_PORT:-5005}"
     local suspend_mode="n"
     if [ -n "${JAVA_DEBUG_SUSPEND:-}" ]; then
-      echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$';
+      set +e
+      echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$'
       if [ $? -eq 1 ]; then
         suspend_mode="y"
       fi
+      set -e
     fi
     echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=${debug_port}"
   fi

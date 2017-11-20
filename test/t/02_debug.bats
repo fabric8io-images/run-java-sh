@@ -23,13 +23,16 @@ load test_helper
   d=$(mktmpdir "debug_suspend_yes")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
   debug_out=/tmp/debug_suspend_log_$$.output
-  JAVA_APP_DIR=$d JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=true $TEST_SHELL $RUN_JAVA >$debug_out 2>&1 &
+  JAVA_APP_DIR=$d JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=true $TEST_SHELL -x $RUN_JAVA >$debug_out 2>&1 &
   pid=$!
   sleep 2
+  echo $output
+  echo "==========="
+  cat $debug_out
+  echo "==========="
   kill -9 $pid
   
   output=$(cat $debug_out)
-  echo $output
   rm $debug_out
   
   assert_regexp "suspend=y"
