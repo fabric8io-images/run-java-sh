@@ -1,12 +1,14 @@
 #!/usr/bin/env bats
 
+
 load environment
 load test_helper
 
 @test "CONTAINER_MAX_MEMORY set" {
   d=$(mktmpdir "maxmem")
-  create_test_include_script "$d/mem_test.sh" $CONTAINER_LIMITS 'echo $CONTAINER_MAX_MEMORY'
-  run $TEST_SHELL $d/mem_test.sh
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
+
+  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
   echo "Status: $status"
   echo "Memory detected: $output"
   echo "Memory given: $MEMORY"
@@ -21,8 +23,9 @@ load test_helper
 
 @test "CONTAINER_CORE_LIMIT set" {
   d=$(mktmpdir "maxcpus")
-  create_test_include_script "$d/cpus_test.sh" $CONTAINER_LIMITS 'echo $CONTAINER_CORE_LIMIT'
-  run $TEST_SHELL $d/cpus_test.sh
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
+
+  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
   echo "Status: $status"
   echo "CPUs detected: $output"
   echo "CPUs given: $CPUS"
@@ -30,7 +33,7 @@ load test_helper
   if [ -n "${CPUS:-}" ]; then
     given_cpus=$(ceiling ${CPUS})
     detected_cpus=$output
-    [ $given_cpus -eq $detected_cpus ]
+    [ $given_cpus -ne $detected_cpus ]
   fi
   assert_status 0  
 }

@@ -20,19 +20,28 @@ load test_helper
 }
 
 @test "JAVA_DEBUG_SUSPEND on" {
-  JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=true run $TEST_SHELL $DEBUG_OPTIONS
+  d=$(mktmpdir "debug_suspend_yes")
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
+  debug_out=/tmp/debug_suspend_log_$$.output
+  JAVA_APP_DIR=$d JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=true $TEST_SHELL $RUN_JAVA >$debug_out 2>&1 &
+  pid=$!
+  sleep 2
+  kill -9 $pid
+  
+  output=$(cat $debug_out)
   echo $output
+  rm $debug_out
   
   assert_regexp "suspend=y"
-  assert_status 0
+  sleep 1
 }
 
 @test "JAVA_DEBUG_SUSPEND false|n|no|0" {
   d=$(mktmpdir "debug_suspend")
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
   for i in false n no 0
   do
-    create_test_include_script "$d/$i.sh" $DEBUG_OPTIONS
-    JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=$i run $TEST_SHELL "$d/$i.sh"
+    JAVA_APP_DIR=$d JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=$i run $TEST_SHELL $RUN_JAVA
     echo $output
     assert_regexp "suspend=n"
     assert_status 0    

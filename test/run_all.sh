@@ -44,8 +44,8 @@ if [ -n "${CPU_SHARES}" ]; then
   diag="$diag\n- CPU shares:\t$CPU_SHARES"
 fi
 
-echo -e "-----------------------------------"
-echo -e "Running run-java test suite:"
+echo "-----------------------------------"
+echo "Running run-java test suite:"
 echo -e $diag
 echo -e "-----------------------------------\n\n"
 
