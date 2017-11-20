@@ -8,7 +8,7 @@ mktmpdir() {
 }
 
 assert_regexp() {
-  [[ $output =~ $1 ]]  
+  [[ $output =~ $1 ]]
 }
 
 assert_status() {
@@ -61,7 +61,7 @@ get_sysprop() {
 }
 
 get_jvmarg() {
-  extract_via_regexp "JVM::" ".*${1}.*"    
+  extract_via_regexp "JVM::" ".*${1}.*"
 }
 
 get_arg() {
@@ -79,20 +79,16 @@ extract_via_regexp() {
   local prefix=$1
   local tomatch=$2
   local re="${prefix}(${tomatch})"$'\n'
-  [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"  
+  [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"
 }
 
 create_test_include_script() {
   local out=$1
-  local script=$2
+  local script=$(cat "$2" | sed -e 's/^[ \t]*exec[ \t]*/#  exec /g')
   local extra=$3
 
 cat - <<EOT >$out
-
-if [ \$TEST_SHELL = "ksh" ]; then
-  alias local=typeset  
-fi
-  . $script
+$script
 $extra
 EOT
 }
