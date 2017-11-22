@@ -116,8 +116,7 @@ find_jar_file() {
 # Generic formula evaluation based on awk
 calc() {
   local formula="$1"
-  local format="$2"
-  shift 2
+  shift 1
   echo "$@" | awk '
     function ceil(x) {
       return x % 1 ? int(x) + 1 : x

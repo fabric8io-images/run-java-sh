@@ -74,7 +74,6 @@ create_non_exec_run_script() {
   local extra=$2
 
   cat - <<EOT >$out
-alias exec=echo
 $script
 $extra
 EOT

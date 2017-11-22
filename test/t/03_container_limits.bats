@@ -8,11 +8,12 @@ load test_helper
   d=$(mktmpdir "maxmem")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
 
-  local result=$(echo "$output" | tail -n1)
 
   create_non_exec_run_script "$d/mem_test.sh" 'echo ${CONTAINER_MAX_MEMORY:-}'
   JAVA_APP_DIR="$d" run $TEST_SHELL $d/mem_test.sh  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  local result=$(echo "$output" | tail -n1)
   echo "Status: $status"
+  echo $output
   echo "Memory detected: $result"
   echo "Memory given: $MEMORY"
 
