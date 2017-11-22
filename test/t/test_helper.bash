@@ -3,12 +3,12 @@
 mktmpdir() {
   local d="$BATS_TMPDIR/$1"
   [ -d $dir ] && rm -rf $d
-  mkdir $d 
+  mkdir $d
   echo $d
 }
 
 assert_regexp() {
-  [[ $output =~ $1 ]]  
+  [[ $output =~ $1 ]]
 }
 
 assert_status() {
@@ -61,11 +61,23 @@ get_sysprop() {
 }
 
 get_jvmarg() {
-  extract_via_regexp "JVM::" ".*${1}.*"    
+  extract_via_regexp "JVM::" ".*${1}.*"
 }
 
 get_arg() {
   extract_via_regexp "ARG::" ".*${1}.*"
+}
+
+create_non_exec_run_script() {
+  local out=$1
+  local extra=$2
+  local script=$(cat $RUN_JAVA | sed -e 's/^[[:space:]]*exec[[:space:]]/#  exec /g')
+
+  cat - <<EOT >$out
+$script
+echo
+$extra
+EOT
 }
 
 extract_key_value_from_output() {
@@ -79,31 +91,16 @@ extract_via_regexp() {
   local prefix=$1
   local tomatch=$2
   local re="${prefix}(${tomatch})"$'\n'
-  [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"  
-}
-
-create_test_include_script() {
-  local out=$1
-  local script=$2
-  local extra=$3
-
-cat - <<EOT >$out
-
-if [ \$TEST_SHELL = "ksh" ]; then
-  alias local=typeset  
-fi
-  . $script
-$extra
-EOT
+  [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"
 }
 
 ceiling() {
-  awk -vnumber="$1" '
+  echo $1 | awk '
     function ceiling(x){
       return x%1 ? int(x)+1 : x
     }
-    BEGIN{
-      print ceiling(number)
+    {
+      print ceiling($1)
     }
   '
 }

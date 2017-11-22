@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Script for running tests in a container. This is script is 
-# meant to be run *outside* a container and by bind mounting 
+# Script for running tests in a container. This is script is
+# meant to be run *outside* a container and by bind mounting
 # the directory into the container
-# 
+#
 # Memory and CPU limitations can be given as environment variables:
 #
 # MEMORY       --memory
@@ -36,7 +36,7 @@ fi
 
 if [ -n "${CPUS}" ]; then
   cpus_opts="--cpus=$CPUS -e CPUS=$CPUS"
-  diag="$diag\n- CPUs:\t$CPUS"
+  diag="$diag\n- CPUs:\t\t$CPUS"
 fi
 
 if [ -n "${CPU_SHARES}" ]; then
@@ -44,8 +44,8 @@ if [ -n "${CPU_SHARES}" ]; then
   diag="$diag\n- CPU shares:\t$CPU_SHARES"
 fi
 
-echo -e "-----------------------------------"
-echo -e "Running run-java test suite:"
+echo "-----------------------------------"
+echo "Running run-java test suite:"
 echo -e $diag
 echo -e "-----------------------------------\n\n"
 
