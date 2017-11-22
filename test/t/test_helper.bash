@@ -3,12 +3,12 @@
 mktmpdir() {
   local d="$BATS_TMPDIR/$1"
   [ -d $dir ] && rm -rf $d
-  mkdir $d 
+  mkdir $d
   echo $d
 }
 
 assert_regexp() {
-  [[ $output =~ $1 ]]  
+  [[ $output =~ $1 ]]
 }
 
 assert_status() {
@@ -61,11 +61,23 @@ get_sysprop() {
 }
 
 get_jvmarg() {
-  extract_via_regexp "JVM::" ".*${1}.*"    
+  extract_via_regexp "JVM::" ".*${1}.*"
 }
 
 get_arg() {
   extract_via_regexp "ARG::" ".*${1}.*"
+}
+
+create_non_exec_run_script() {
+  local out=$1
+  local script=$(cat $RUN_JAVA | sed -e 's/^[[:space:]]*exec[[:space:]]/#  exec /g')
+  local extra=$2
+
+  cat - <<EOT >$out
+alias exec=echo
+$script
+$extra
+EOT
 }
 
 extract_key_value_from_output() {
@@ -79,7 +91,7 @@ extract_via_regexp() {
   local prefix=$1
   local tomatch=$2
   local re="${prefix}(${tomatch})"$'\n'
-  [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"  
+  [[ $output =~ $re ]] && echo "${BASH_REMATCH[1]}"
 }
 
 ceiling() {

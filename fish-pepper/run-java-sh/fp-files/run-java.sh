@@ -12,7 +12,7 @@
 # Source and Documentation can be found
 # at https://github.com/fabric8io-images/run-java-sh
 #
-# Env-variables evaluated in this script: 
+# Env-variables evaluated in this script:
 #
 # JAVA_OPTIONS: Checked for already set options
 # JAVA_MAX_MEM_RATIO: Ratio use to calculate a default maximum Memory, in percent.
@@ -36,8 +36,6 @@
 #
 # The following variables are exposed to your Java application:
 #
-# MAX_MEMORY: The 
-#
 # CONTAINER_MAX_MEMORY: Max memory for the container (if running within a container)
 # MAX_CORE_LIMIT: Number of cores available for the container (if running within a container)
 
@@ -52,7 +50,7 @@ set -eu
 
 # ksh is different for defining local vars
 if [ -n "${KSH_VERSION:-}" ]; then
-  alias local=typeset  
+  alias local=typeset
 fi
 
 # Error is indicated with a prefix in the return value
@@ -156,7 +154,7 @@ core_limit() {
 
 max_memory() {
   # High number which is the max limit until which memory is supposed to be
-  # unbounded. 
+  # unbounded.
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
     local max_mem_cgroup="$(cat ${mem_file})"
@@ -231,12 +229,9 @@ debug_options() {
     local debug_port="${JAVA_DEBUG_PORT:-5005}"
     local suspend_mode="n"
     if [ -n "${JAVA_DEBUG_SUSPEND:-}" ]; then
-      set +e
-      echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$'
-      if [ $? -eq 1 ]; then
+      if ! echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$'; then
         suspend_mode="y"
       fi
-      set -e
     fi
     echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=${debug_port}"
   fi
@@ -283,7 +278,7 @@ memory_options() {
 }
 
 # Check for memory options and set max heap size if needed
-calc_max_memory() { 
+calc_max_memory() {
   # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS:-}" | grep -q -- "-Xmx"; then
     return
@@ -421,8 +416,7 @@ exec_args() {
   EXEC_ARGS=""
   if [ -n "${JAVA_APP_NAME:-}" ]; then
     # Not all shells support the 'exec -a newname' syntax..
-    $(exec -a test true 2>/dev/null)
-    if [ $? -eq 0 ]; then
+    if $(exec -a test true 2>/dev/null); then
       echo "-a '${JAVA_APP_NAME}'"
     fi
   fi
@@ -477,8 +471,8 @@ startup() {
      # dies here if JAVA_APP_JAR would not be set for some reason (see option `set -u` above)
      args="-jar ${JAVA_APP_JAR}"
   fi
-  # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg. 
-  # However it could be two args (see above). zsh doesn't like this btw, but zsh is not 
+  # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg.
+  # However it could be two args (see above). zsh doesn't like this btw, but zsh is not
   # supported anyway.
   echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $*
   exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $*

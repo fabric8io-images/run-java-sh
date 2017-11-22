@@ -22,19 +22,12 @@ load test_helper
 @test "JAVA_DEBUG_SUSPEND on" {
   d=$(mktmpdir "debug_suspend_yes")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
-  debug_out=/tmp/debug_suspend_log_$$.output
-  JAVA_APP_DIR=$d JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=true $TEST_SHELL -x $RUN_JAVA >$debug_out 2>&1 &
-  pid=$!
-  sleep 2
-  echo $output
-  echo "==========="
-  cat $debug_out
-  echo "==========="
-  kill -9 $pid
-  
-  output=$(cat $debug_out)
-  rm $debug_out
-  
+
+  create_non_exec_run_script "$d/debug_suspend_on.sh"
+  JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=true JAVA_APP_DIR="$d" run $TEST_SHELL "$d/debug_suspend_on.sh"
+
+  echo $output | tail -n1
+
   assert_regexp "suspend=y"
   sleep 1
 }
@@ -44,10 +37,11 @@ load test_helper
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
   for i in false n no 0
   do
-    JAVA_APP_DIR=$d JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=$i run $TEST_SHELL $RUN_JAVA
-    echo $output
+    create_non_exec_run_script "$d/$i.sh"
+    JAVA_DEBUG=1 JAVA_DEBUG_SUSPEND=$i JAVA_APP_DIR="$d" run $TEST_SHELL "$d/$i.sh"
+    echo $output | tail -n1
     assert_regexp "suspend=n"
-    assert_status 0    
+    assert_status 0
   done
 }
 
@@ -65,8 +59,8 @@ check_enable_debug() {
   fi
   eval "JAVA_APP_DIR=$d ${envvar}=true $port_env run $TEST_SHELL $RUN_JAVA"
   echo $status
-  echo $output
-  
+  echo $output | tail -n1
+
   assert_jvmarg "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$port_expected"
   assert_regexp "Listening for transport"
 

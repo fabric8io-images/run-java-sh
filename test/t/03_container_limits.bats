@@ -8,14 +8,17 @@ load test_helper
   d=$(mktmpdir "maxmem")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
 
-  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  local result=$(echo "$output" | tail -n1)
+
+  create_non_exec_run_script "$d/mem_test.sh" 'echo ${CONTAINER_MAX_MEMORY:-}'
+  JAVA_APP_DIR="$d" run $TEST_SHELL $d/mem_test.sh  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
   echo "Status: $status"
-  echo "Memory detected: $output"
+  echo "Memory detected: $result"
   echo "Memory given: $MEMORY"
-  
+
   if [ -n "${MEMORY:-}" ]; then
     given_mem=$(echo $MEMORY | awk '{printf "%d\n", $1 * 1024 * 1024}')
-    detected_mem=$output
+    detected_mem=$result
     [ $given_mem -eq $detected_mem ]
   fi
   assert_status 0
@@ -25,15 +28,19 @@ load test_helper
   d=$(mktmpdir "maxcpus")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
 
-  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  create_non_exec_run_script "$d/cpus_test.sh" 'echo ${CONTAINER_CORE_LIMIT:-}'
+  JAVA_APP_DIR="$d" run $TEST_SHELL $d/cpus_test.sh
+
+  local result=$(echo "$output" | tail -n1)
+
   echo "Status: $status"
-  echo "CPUs detected: $output"
+  echo "CPUs detected: $result"
   echo "CPUs given: $CPUS"
-  
+
   if [ -n "${CPUS:-}" ]; then
     given_cpus=$(ceiling ${CPUS})
-    detected_cpus=$output
+    detected_cpus=$result
     [ $given_cpus -ne $detected_cpus ]
   fi
-  assert_status 0  
+  assert_status 0
 }
