@@ -70,11 +70,12 @@ get_arg() {
 
 create_non_exec_run_script() {
   local out=$1
-  local script=$(cat $RUN_JAVA | sed -e 's/^[[:space:]]*exec[[:space:]]/#  exec /g')
   local extra=$2
+  local script=$(cat $RUN_JAVA | sed -e 's/^[[:space:]]*exec[[:space:]]/#  exec /g')
 
   cat - <<EOT >$out
 $script
+echo
 $extra
 EOT
 }
@@ -94,12 +95,12 @@ extract_via_regexp() {
 }
 
 ceiling() {
-  awk -vnumber="$1" '
+  echo $1 | awk '
     function ceiling(x){
       return x%1 ? int(x)+1 : x
     }
-    BEGIN{
-      print ceiling(number)
+    {
+      print ceiling($1)
     }
   '
 }

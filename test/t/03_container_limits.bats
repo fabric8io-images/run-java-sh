@@ -31,17 +31,17 @@ load test_helper
 
   create_non_exec_run_script "$d/cpus_test.sh" 'echo ${CONTAINER_CORE_LIMIT:-}'
   JAVA_APP_DIR="$d" run $TEST_SHELL $d/cpus_test.sh
-
+#  cat $d/cpus_test.sh
   local result=$(echo "$output" | tail -n1)
-
+  echo $output
   echo "Status: $status"
   echo "CPUs detected: $result"
-  echo "CPUs given: $CPUS"
 
   if [ -n "${CPUS:-}" ]; then
     given_cpus=$(ceiling ${CPUS})
+    echo "CPUs given: $given_cpus"
     detected_cpus=$result
-    [ $given_cpus -ne $detected_cpus ]
+    [ $given_cpus -eq $detected_cpus ]
   fi
   assert_status 0
 }

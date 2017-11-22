@@ -1,5 +1,4 @@
 #!/bin/sh
-
 # ===================================================================================
 # Generic startup script for running arbitrary Java applications with
 # being optimized for running in containers
@@ -116,7 +115,7 @@ find_jar_file() {
 # Generic formula evaluation based on awk
 calc() {
   local formula="$1"
-  shift 1
+  shift
   echo "$@" | awk '
     function ceil(x) {
       return x % 1 ? int(x) + 1 : x
@@ -145,7 +144,7 @@ core_limit() {
       local cpu_quota="$(cat ${cpu_quota_file})"
       # cfs_quota_us == -1 --> no restrictions
       if [ ${cpu_quota:-0} -ne -1 ]; then
-        $(calc 'ceil($1/$2)' "${cpu_quota}" "${cpu_period}")
+        echo $(calc 'ceil($1/$2)' "${cpu_quota}" "${cpu_period}")
       fi
     fi
   fi
