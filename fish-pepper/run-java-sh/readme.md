@@ -14,6 +14,9 @@ The run script can be influenced by the following environment variables:
 * **JAVA_DEBUG** If set remote debugging will be switched on
 * **JAVA_DEBUG_SUSPEND** If set enables suspend mode in remote debugging
 * **JAVA_DEBUG_PORT** Port used for remote debugging. Default: 5005
+* **HTTP_PROXY** The URL of the proxy server that translates into the `http.proxyHost` and `http.proxyPort` system properties.
+* **HTTPS_PROXY** The URL of the proxy server that translates into the `https.proxyHost` and `https.proxyPort` system properties.
+* **no_proxy**, **NO_PROXY** The list of hosts that should be reached directly, bypassing the proxy, that translates into the `http.nonProxyHosts` system property.
 
 If neither `$JAVA_APP_JAR` nor `$JAVA_MAIN_CLASS` is given, `$JAVA_APP_DIR` is checked for a single JAR file which is taken as `$JAVA_APP_JAR`. If no or more then one jar file is found, an error is thrown.
 

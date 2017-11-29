@@ -8,7 +8,6 @@ load test_helper
   d=$(mktmpdir "maxmem")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
 
-
   create_non_exec_run_script "$d/mem_test.sh" 'echo ${CONTAINER_MAX_MEMORY:-}'
   JAVA_APP_DIR="$d" run $TEST_SHELL $d/mem_test.sh  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
   local result=$(echo "$output" | tail -n1)
@@ -31,7 +30,6 @@ load test_helper
 
   create_non_exec_run_script "$d/cpus_test.sh" 'echo ${CONTAINER_CORE_LIMIT:-}'
   JAVA_APP_DIR="$d" run $TEST_SHELL $d/cpus_test.sh
-#  cat $d/cpus_test.sh
   local result=$(echo "$output" | tail -n1)
   echo $output
   echo "Status: $status"
