@@ -28,7 +28,7 @@ assert_arg() {
 }
 
 assert_jvmarg() {
-  [[ $output == *"JVM::$1"* ]]
+  get_jvmarg $1
 }
 
 assert_ps() {
