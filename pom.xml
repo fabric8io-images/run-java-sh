@@ -14,6 +14,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <scm>
+    <connection>scm:git:git://github.com/fabric8io-images/run-java-sh.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/fabric8io-images/run-java-sh.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>git://github.com/fabric8io-images/run-java-sh.git</url>
+  </scm>
+
   <build>
     <resources>
       <resource>
