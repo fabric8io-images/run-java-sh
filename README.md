@@ -35,7 +35,7 @@ Maven builds can declare a dependency on
 <dependency>
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
@@ -45,6 +45,24 @@ Then, within your code the script can be obtained with
 
 // Copy it to a destination, possibly somwhere below target/
 RunShLoader.copyRunScript(new File("target/assembly/startup/"));
+```
+
+You can also use this jar file directly for extracting the shell script on the fly, 
+or even executing it:
+
+```
+Usage: java -jar run-java.jar <command>
+
+with the following commands:
+
+   help        : This help message
+   copy <file> : Write run-java.sh out to this file or directory
+   readme      : Print the README
+   exec <arg>  : Execute the script directly from the JVM.
+
+Note that this will keep the current JVM running, so you end up with 2 JVMs
+
+By default (no command) print out the content of this script
 ```
 
 #### fish-pepper

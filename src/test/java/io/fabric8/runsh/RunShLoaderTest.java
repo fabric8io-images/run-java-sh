@@ -19,17 +19,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Scanner;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland
@@ -42,29 +36,10 @@ public class RunShLoaderTest {
         Path dest =  Files.createTempDirectory("run");
         RunShLoader.copyRunScript(dest.toFile());
 
-        Set<String> filesToCheck =
-            new HashSet<>(
-                Arrays.asList("run-java.sh", "container-limits",
-                              "debug-options", "java-default-options"));
-
-        for (String script : dest.toFile().list()) {
-            assertTrue(filesToCheck.remove(script));
-            String extracted = FileUtils.readFileToString(new File(dest.toFile(), script));
-            String stored = loadFromClassPath("/run-java-sh/fp-files/" + script);
-            assertEquals(stored, extracted);
-        }
-        assertEquals(0, filesToCheck.size());
+        String files[] = dest.toFile().list();
+        assertEquals(1, files.length);
+        String extracted = new String(Files.readAllBytes(new File(dest.toFile(), "run-java.sh").toPath()));
+        String stored = RunShLoader.loadFromClassPath("/run-java-sh/fp-files/run-java.sh");
+        assertEquals(stored, extracted);
     }
-
-    // ======================================================================================================
-
-
-    private String loadFromClassPath(String location) {
-        try {
-            return IOUtils.toString(getClass().getResourceAsStream(location));
-        } catch (IOException e) {
-            throw new IllegalStateException("Internal: Cannot load " + location + ":" + e,e);
-        }
-    }
-
 }
