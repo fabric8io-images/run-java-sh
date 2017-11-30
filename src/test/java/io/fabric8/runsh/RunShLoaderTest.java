@@ -39,16 +39,7 @@ public class RunShLoaderTest {
         String files[] = dest.toFile().list();
         assertEquals(1, files.length);
         String extracted = new String(Files.readAllBytes(new File(dest.toFile(), "run-java.sh").toPath()));
-        String stored = loadFromClassPath("/run-java-sh/fp-files/run-java.sh");
+        String stored = RunShLoader.loadFromClassPath("/run-java-sh/fp-files/run-java.sh");
         assertEquals(stored, extracted);
     }
-
-    // ======================================================================================================
-
-
-    private String loadFromClassPath(String location) {
-        Scanner s = new Scanner(getClass().getResourceAsStream(location)).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
-    }
-
 }

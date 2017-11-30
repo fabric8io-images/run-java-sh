@@ -3,13 +3,11 @@ package io.fabric8.runsh;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -108,7 +106,7 @@ public class RunShLoader
      * Copy the run scripts to a destination in the file system
      *
      * @param destination where to copy run script. Must be a directory.
-     * @return return the file to the script
+     * @return the file to the script
      */
     public static File copyRunScript(File destination) throws IOException {
         Path targetPath;
@@ -131,18 +129,19 @@ public class RunShLoader
 
     // ==================================================================================
 
-    private static String loadFromClassPath(String location) {
-        Scanner s = new Scanner(getInputStream(location)).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
+    static String loadFromClassPath(String location) {
+        try (Scanner s = new Scanner(getInputStream(location)).useDelimiter("\\A")) {
+            return s.hasNext() ? s.next() : "";
+        }
     }
 
     private static InputStream getInputStream(String location) {
         return RunShLoader.class.getResourceAsStream(location);
     }
 
-    private static String[] getExecArgs(String[] mainArgs, String ... scriptArgs) {
+    private static String[] getExecArgs(String[] mainArgs, String... scriptArgs) {
         String[] ret = new String[mainArgs.length - 1 + scriptArgs.length];
-        int i=0;
+        int i = 0;
         for (String arg : scriptArgs) {
             ret[i++] = arg;
         }
