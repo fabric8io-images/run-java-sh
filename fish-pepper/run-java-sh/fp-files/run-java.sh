@@ -399,7 +399,11 @@ gc_options() {
     if echo "${JAVA_OPTIONS:-}" | grep -q -- "-XX:.*Use.*GC"; then
       return
     fi
-    echo "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+ExitOnOutOfMemoryError $(heap_ratio)"
+    local opts="-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 $(heap_ratio)"
+    if [ -z "${JAVA_MAJOR_VERSION}" ] || [ "${JAVA_MAJOR_VERSION}" != "7" ]; then
+      opts="${opts} -XX:+ExitOnOutOfMemoryError"
+    fi
+    echo $opts
 }
 
 java_default_options() {
