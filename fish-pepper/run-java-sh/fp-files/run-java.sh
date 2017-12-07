@@ -400,7 +400,7 @@ gc_options() {
       return
     fi
     local opts="-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 $(heap_ratio)"
-    if [ -z "${JAVA_MAJOR_VERSION}" ] || [ "${JAVA_MAJOR_VERSION}" != "7" ]; then
+    if [ -z "${JAVA_MAJOR_VERSION:-}" ] || [ "${JAVA_MAJOR_VERSION:-}" != "7" ]; then
       opts="${opts} -XX:+ExitOnOutOfMemoryError"
     fi
     echo $opts
