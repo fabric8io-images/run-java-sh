@@ -7,7 +7,9 @@
   <packaging>jar</packaging>
 
   <name>run-java-sh</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/fabric8io-images/run-java-sh</url>
+
+  <description>Java startup script for containers</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
