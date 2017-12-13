@@ -38,8 +38,8 @@ core_limit() {
 
 max_memory() {
   # High number which is the max limit unti which memory is supposed to be
-  # unbounded. 512 TB for now.
-  local max_mem_unbounded="562949953421312"
+  # unbounded.
+  local max_mem_unbounded=$(cat /proc/meminfo | awk '/MemTotal/ {printf "%d\n", $2 * 1024}')
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
   if [ -r "${mem_file}" ]; then
     local max_mem="$(cat ${mem_file})"
