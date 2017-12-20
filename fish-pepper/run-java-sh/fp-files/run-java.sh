@@ -118,13 +118,13 @@ calc() {
   shift
   echo "$@" | awk '
     function ceil(x) {
-      return x % 1 ? int(x) + 1 : x
+      return x % 1 ? int(x) + 1 : int(x)
     }
     function log2(x) {
-      return log(x)/log(2)
+      return int(log(x)/log(2))
     }
     function max2(x, y) {
-      return x > y ? x : y
+      return x > y ? int(x) : int(y)
     }
     function round(x) {
       return int(x + 0.5)
