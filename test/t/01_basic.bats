@@ -31,10 +31,10 @@ load test_helper
   assert_status 1
 }
 
-@test "Exact one JAR found" {
+@test "Exact one JAR found (with arg)" {
   d=$(mktmpdir "1jar")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
-  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA run --user roland
   echo $status
   echo $output
 
@@ -48,6 +48,9 @@ load test_helper
   assert_command_contains "-cp ."
   assert_command_contains "-jar $d/test.jar"
   assert_command_contains_not "TestMain"
+
+  assert_arg "--user"
+  assert_arg "roland"
 
   assert_status 0
 }
