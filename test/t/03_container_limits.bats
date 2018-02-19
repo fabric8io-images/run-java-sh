@@ -24,6 +24,24 @@ load test_helper
   assert_status 0
 }
 
+@test "No mem opts when JAVA_MAX_MEM_RATIO is set to 0" {
+  if [ -n "$MEMORY" ]; then
+    JAVA_MAX_MEM_RATIO="0" run $TEST_SHELL $RUN_JAVA options
+    echo $output
+    assert_not_regexp "-Xmx"
+    assert_status 0
+  fi
+}
+
+@test "Default max mem ratio" {
+  if [ -n "$MEMORY" ]; then
+    run $TEST_SHELL $RUN_JAVA options
+    echo $output
+    assert_regexp "-Xmx"
+    assert_status 0
+  fi
+}
+
 @test "CONTAINER_CORE_LIMIT set" {
   d=$(mktmpdir "maxcpus")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"

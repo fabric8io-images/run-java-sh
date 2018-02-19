@@ -300,15 +300,17 @@ calc_max_memory() {
 
   # Check for the 'real memory size' and calculate Xmx from the ratio
   if [ -n "${JAVA_MAX_MEM_RATIO:-}" ]; then
-    calc_mem_opt "${CONTAINER_MAX_MEMORY}" "${JAVA_MAX_MEM_RATIO}" "mx"
-  else
-    if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
-      # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
-      # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
-      calc_mem_opt "${CONTAINER_MAX_MEMORY}" "25" "mx"
-    else
-      calc_mem_opt "${CONTAINER_MAX_MEMORY}" "50" "mx"
+    if [ "${JAVA_MAX_MEM_RATIO}" -eq 0 ]; then
+      # Explicitely switched off
+      return
     fi
+    calc_mem_opt "${CONTAINER_MAX_MEMORY}" "${JAVA_MAX_MEM_RATIO}" "mx"
+  elif [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+    # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
+    # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
+    calc_mem_opt "${CONTAINER_MAX_MEMORY}" "25" "mx"
+  else
+    calc_mem_opt "${CONTAINER_MAX_MEMORY}" "50" "mx"
   fi
 }
 
