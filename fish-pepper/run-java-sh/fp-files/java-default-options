@@ -9,9 +9,12 @@
 
 # JAVA_OPTIONS: Checked for already set options
 # JAVA_MAX_MEM_RATIO: Ratio use to calculate a default maximum Memory, in percent.
-#                     E.g. the default value "50" implies that 50% of the Memory
+#                     E.g. the "50" value implies that 50% of the Memory
 #                     given to the container is used as the maximum heap memory with
-#                     '-Xmx'. It is a heuristic and should be better backed up with real
+#                     '-Xmx'.
+#                     It defaults to "25" when the maximum amount of memory available
+#                     to the container is below 300M, otherwise defaults to "50".
+#                     It is a heuristic and should be better backed up with real
 #                     experiments and measurements.
 #                     For a good overviews what tuning options are available -->
 #                             https://youtu.be/Vt4G-pHXfs4
@@ -19,31 +22,53 @@
 #                             https://vimeo.com/album/4133413/video/181900266
 # Also note that heap is only a small portion of the memory used by a JVM. There are lot
 # of other memory areas (metadata, thread, code cache, ...) which addes to the overall
-# size. There is no easy solution for this, 50% seems to be are reasonable compromise.
-# However, when your container gets killed because of an OOM, then you should tune
-# the absolute values
-#
+# size. When your container gets killed because of an OOM, then you should tune
+# the absolute values.
 
-# Check for memory options and calculate a sane default if not given
 max_memory() {
-  # Check whether -Xmx is already given in JAVA_OPTIONS. Then we dont
-  # do anything here
+  # Check whether -Xmx is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS}" | grep -q -- "-Xmx"; then
     return
   fi
 
-  # Check if explicitely disabled
-  if [ "x$JAVA_MAX_MEM_RATIO" = "x0" ]; then
-    return
-  fi
-
-  # Check for the 'real memory size' and caluclate mx from a ratio
-  # given (default is 50%)
+  # Check for the 'real memory size' and calculate Xmx from the ratio
   if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
     local max_mem="${CONTAINER_MAX_MEMORY}"
-    local ratio=${JAVA_MAX_MEM_RATIO:-50}
-    local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
-    echo "-Xmx${mx}m"
+    if [ "x$JAVA_MAX_MEM_RATIO" != x ]; then
+      local ratio="${JAVA_MAX_MEM_RATIO}"
+      local mx=$(echo "${max_mem} ${ratio} 1048576" | awk '{printf "%d\n" , ($1*$2)/(100*$3) + 0.5}')
+      echo "-Xmx${mx}m"
+    else
+      if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+        # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
+        # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
+        local mx=$(echo "${max_mem} 1048576" | awk '{printf "%d\n" , ($1*25)/(100*$2) + 0.5}')
+      else
+        local mx=$(echo "${max_mem} 1048576" | awk '{printf "%d\n" , ($1*50)/(100*$2) + 0.5}')
+      fi
+      echo "-Xmx${mx}m"
+    fi
+  fi
+}
+
+c2_disabled() {
+  if [ "x$CONTAINER_MAX_MEMORY" != x ]; then
+    # Disable C2 compiler when container memory <=300MB
+    if [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
+      echo true
+      return
+    fi
+  fi
+  echo false
+}
+
+jit_options() {
+  # Check whether -XX:TieredStopAtLevel is already given in JAVA_OPTIONS
+  if echo "${JAVA_OPTIONS}" | grep -q -- "-XX:TieredStopAtLevel"; then
+    return
+  fi
+  if [ $(c2_disabled) = true ]; then
+    echo "-XX:TieredStopAtLevel=1"
   fi
 }
 
@@ -52,6 +77,45 @@ diagnostics() {
   if [ "x$JAVA_DIAGNOSTICS" != "x" ]; then
     echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
   fi
+}
+
+add2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1+$2}'
+}
+
+div2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1/$2}'
+}
+
+mul2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1*$2}'
+}
+
+sub2() {
+  echo "$1" "$2" | awk '{printf "%d\n", $1-$2}'
+}
+
+log2_int() {
+  echo "$1" | awk '{printf "%d\n", log($1)/log(2)}'
+}
+
+max2() {
+  [ $1 -le $2 ] && echo "$2" || echo "$1"
+}
+
+# Replicate thread ergonomics for tiered compilation.
+# This could ideally be skipped when tiered compilation is disabled.
+# The algorithm is taken from:
+# OpenJDK / jdk8u / jdk8u / hotspot
+# src/share/vm/runtime/advancedThresholdPolicy.cpp
+ci_compiler_count() {
+  local core_limit=$1
+  local log_cpu=$(log2_int $core_limit)
+  local loglog_cpu=$(log2_int $(max2 $log_cpu 1))
+  local count=$(mul2 $(max2 $(mul2 $log_cpu $loglog_cpu) 1) 1.5)
+  local c1_count=$(max2 $(div2 $count 3) 1)
+  local c2_count=$(max2 $(sub2 $count $c1_count) 1)
+  [ $(c2_disabled) = true ] && echo "$c1_count" || echo $(add2 $c1_count $c2_count)
 }
 
 cpu_core_tunning() {
@@ -66,9 +130,10 @@ cpu_core_tunning() {
     fi
     echo "-XX:ParallelGCThreads=${core_limit} " \
          "-XX:ConcGCThreads=${core_limit} " \
-         "-Djava.util.concurrent.ForkJoinPool.common.parallelism=${core_limit}"
+         "-Djava.util.concurrent.ForkJoinPool.common.parallelism=${core_limit} " \
+         "-XX:CICompilerCount=$(ci_compiler_count $core_limit)"
   fi
 }
 
 # Echo options, trimming trailing and multiple spaces
-echo "$(max_memory) $(diagnostics) $(cpu_core_tunning)" | awk '$1=$1'
+echo "$(max_memory) $(jit_options) $(diagnostics) $(cpu_core_tunning)" | awk '$1=$1'
