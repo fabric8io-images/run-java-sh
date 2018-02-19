@@ -71,6 +71,7 @@ get_arg() {
 create_non_exec_run_script() {
   local out=$1
   local extra=$2
+  local tmp_dir=$(dirname ${out})
   local script=$(cat $RUN_JAVA | sed -e 's/^[[:space:]]*exec[[:space:]]/#  exec /g')
 
   cat - <<EOT >$out
@@ -78,6 +79,9 @@ $script
 echo
 $extra
 EOT
+
+  cp ${RUN_JAVA_DIR}/container-limits ${tmp_dir}
+  cp ${RUN_JAVA_DIR}/java-default-options ${tmp_dir}
 }
 
 extract_key_value_from_output() {
