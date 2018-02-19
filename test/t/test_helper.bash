@@ -11,6 +11,10 @@ assert_regexp() {
   [[ $output =~ $1 ]]
 }
 
+assert_not_regexp() {
+  ! [[ $output =~ $1 ]]
+}
+
 assert_status() {
   [ $status = $1 ]
 }

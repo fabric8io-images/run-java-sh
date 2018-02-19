@@ -3,7 +3,13 @@
 # Generic startup script for running arbitrary Java applications with
 # being optimized for running in containers
 #
-# Usage: ./run-java.sh <args given to Java code>
+# Usage:
+#    # Execute a Java app:
+#    ./run-java.sh <args given to Java code>
+#
+#    # Get options which can be used for invoking Java apps like Maven or Tomcate
+#    ./run-java.sh options [....]
+#
 #
 # This script will pick up either a 'fat' jar which can be run with "-jar"
 # or you can sepcify a JAVA_MAIN_CLASS.
@@ -46,6 +52,9 @@
 
 # Fail on error and undefined vars
 set -eu
+
+# Save global script args
+ARGS="$@"
 
 # ksh is different for defining local vars
 if [ -n "${KSH_VERSION:-}" ]; then
@@ -165,6 +174,19 @@ max_memory() {
   fi
 }
 
+init_limit_env_vars() {
+  # Read in container limits and export the as environment variables
+  local core_limit="$(core_limit)"
+  if [ -n "${core_limit}" ]; then
+    export CONTAINER_CORE_LIMIT="${core_limit}"
+  fi
+
+  local mem_limit="$(max_memory)"
+  if [ -n "${mem_limit}" ]; then
+    export CONTAINER_MAX_MEMORY="${mem_limit}"
+  fi
+}
+
 load_env() {
   local script_dir="$1"
 
@@ -183,17 +205,6 @@ load_env() {
     . "${JAVA_APP_DIR}/${run_env_sh}"
   fi
   export JAVA_APP_DIR
-
-  # Read in container limits and export the as environment variables
-  local core_limit="$(core_limit)"
-  if [ -n "${core_limit}" ]; then
-    export CONTAINER_CORE_LIMIT="${core_limit}"
-  fi
-
-  local mem_limit="$(max_memory)"
-  if [ -n "${mem_limit}" ]; then
-    export CONTAINER_MAX_MEMORY="${mem_limit}"
-  fi
 
   # JAVA_LIB_DIR defaults to JAVA_APP_DIR
   export JAVA_LIB_DIR="${JAVA_LIB_DIR:-${JAVA_APP_DIR}}"
@@ -348,7 +359,7 @@ jit_options() {
 }
 
 # Switch on diagnostics except when switched off
-diagnostic_options() {
+diagnostics_options() {
   if [ -n "${JAVA_DIAGNOSTICS:-}" ]; then
     echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
   fi
@@ -409,7 +420,8 @@ gc_options() {
 
 java_default_options() {
   # Echo options, trimming trailing and multiple spaces
-  echo "$(memory_options) $(jit_options) $(diagnostic_options) $(cpu_options) $(gc_options)" | awk '$1=$1'
+  echo "$(memory_options) $(jit_options) $(diagnostics_options) $(cpu_options) $(gc_options)" | awk '$1=$1'
+
 }
 
 # ==============================================================================
@@ -498,10 +510,58 @@ classpath() {
   echo "${cp_path}"
 }
 
+# Checks if a flag is present in the arguments.
+hasflag() {
+    local filters="$@"
+    for var in $ARGS; do
+        for filter in $filters; do
+          if [ "$var" = "$filter" ]; then
+              echo 'true'
+              return
+          fi
+        done
+    done
+}
+
 # ==============================================================================
 
+options() {
+    if [ -z ${1:-} ]; then
+      java_options
+      return
+    fi
+
+    local ret=""
+    if [ $(hasflag --debug) ]; then
+      ret="$ret $(debug_options)"
+    fi
+    if [ $(hasflag --proxy) ]; then
+      ret="$ret $(proxy_options)"
+    fi
+    if [ $(hasflag --java-default) ]; then
+      ret="$ret $(java_default_options)"
+    fi
+    if [ $(hasflag --memory) ]; then
+      ret="$ret $(memory_options)"
+    fi
+    if [ $(hasflag --jit) ]; then
+      ret="$ret $(jit_options)"
+    fi
+    if [ $(hasflag --diagnostics) ]; then
+      ret="$ret $(diagnostics_options)"
+    fi
+    if [ $(hasflag --cpu) ]; then
+      ret="$ret $(cpu_options)"
+    fi
+    if [ $(hasflag --gc) ]; then
+      ret="$ret $(gc_options)"
+    fi
+
+    echo $ret | awk '$1=$1'
+}
+
 # Start JVM
-startup() {
+run() {
   # Initialize environment
   load_env $(script_dir)
 
@@ -518,10 +578,25 @@ startup() {
   # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg.
   # However it could be two args (see above). zsh doesn't like this btw, but zsh is not
   # supported anyway.
-  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $*
-  exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $*
+  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $@
+  exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $@
 }
 
 # =============================================================================
 # Fire up
-startup $*
+
+# Set env vars reflecting limits
+init_limit_env_vars
+
+first_arg=${1:-}
+if [ "${first_arg}" = "options" ]; then
+  # Print out options only
+  shift
+  options $@
+  exit 0
+elif [ "${first_arg}" = "run" ]; then
+  # Run is the default command, but can be given to allow "options"
+  # as first argument to your
+  shift
+fi
+run $@
