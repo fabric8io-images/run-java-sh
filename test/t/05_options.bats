@@ -13,7 +13,9 @@ load test_helper
       assert_regexp "-Xmx"
       assert_not_regexp "-Xms"
   fi
-  assert_regexp "CICompilerCount"
+  if [ -n "${CPUS}" ]; then
+    assert_regexp "CICompilerCount"
+  fi
   assert_status 0
 }
 
@@ -23,9 +25,11 @@ load test_helper
   echo $output
 
   if [ -n "${MEMORY:-}" ]; then
-      assert_regexp "-Xmx"
-      assert_regexp "-Xms"
+    assert_regexp "-Xmx"
+    assert_regexp "-Xms"
   fi
-  assert_not_regexp "CICompilerCount"
+  if [ -n "${CPUS}" ]; then
+    assert_not_regexp "CICompilerCount"
+  fi
   assert_status 0
 }
