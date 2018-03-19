@@ -75,6 +75,20 @@ load test_helper
   assert_status 0
 }
 
+@test "NO_PROXY setting with wildcard in first element" {
+  d=$(mktmpdir "proxy")
+
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
+  no_proxy='.example.com, localhost,.cluster.local' JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  echo $status
+  echo $output
+
+  assert_jvmarg "-Dhttp.nonProxyHosts=\"\*.example.com\|localhost\|\*.cluster.local\""
+  assert_command_contains_not "http.proxyHost"
+  assert_command_contains_not "http.proxyHost"
+
+  assert_status 0
+}
 
 @test "All proxy settings" {
   d=$(mktmpdir "proxy")
