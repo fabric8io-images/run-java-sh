@@ -7,7 +7,7 @@
 #    # Execute a Java app:
 #    ./run-java.sh <args given to Java code>
 #
-#    # Get options which can be used for invoking Java apps like Maven or Tomcate
+#    # Get options which can be used for invoking Java apps like Maven or Tomcat
 #    ./run-java.sh options [....]
 #
 #
