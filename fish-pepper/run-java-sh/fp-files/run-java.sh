@@ -255,7 +255,7 @@ format_classpath() {
   local cp_file="$1"
   local app_jar="${2:-}"
 
-  local wc_out=$(wc -l $1 2>&1)
+  local wc_out="$(wc -l $1 2>&1)"
   if [ $? -ne 0 ]; then
     echo "Cannot read lines in ${cp_file}: $wc_out"
     exit 1
