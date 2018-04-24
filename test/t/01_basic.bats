@@ -95,3 +95,18 @@ load test_helper
   fi
   assert_status 0
 }
+
+@test "JAVA_MAIN_CLASS with run-classpath without JAVA_APP_JAR" {
+  d=$(mktmpdir "mainclass-classpath-without-jar")
+  mkdir "$d/classpathdir1" "$d/classpathdir2"
+  echo 'classpathdir1/*' >> "$d/classpath"
+  echo 'classpathdir2/*' >> "$d/classpath"
+  cp "$TEST_JAR_DIR/test.jar" "$d/classpathdir2/test.jar"
+  JAVA_APP_DIR=$d JAVA_MAIN_CLASS=TestMain run $TEST_SHELL $RUN_JAVA
+  echo $status
+  echo $output
+
+  assert_command_contains "TestMain"
+  assert_command_contains "-cp .:$d/classpathdir1/*:$d/classpathdir2/*"
+  assert_status 0
+}
