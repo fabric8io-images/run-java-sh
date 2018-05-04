@@ -127,6 +127,20 @@ public class RunShLoader
         return targetPath.toFile();
     }
 
+    /**
+     * Ducktype interface method for creating the startup script together with docker-maven-plugin
+     *
+     */
+    public static void addExtraFiles(File targetDir) throws IOException {
+        File runJavaDir = new File(targetDir, "run-java");
+        if (!runJavaDir.exists()) {
+            if (!runJavaDir.mkdir()) {
+                throw new IOException("Couldn't create directory " + runJavaDir.getPath());
+            }
+        }
+        copyRunScript(new File(runJavaDir, "run-java.sh"));
+    }
+
     // ==================================================================================
 
     static String loadFromClassPath(String location) {
