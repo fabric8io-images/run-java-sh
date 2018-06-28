@@ -156,4 +156,16 @@ public class RunShLoader
         }
         return ret;
     }
+
+
+    /**
+     * public interface of dmp plugin. do not remove (see https://dmp.fabric8.io/#docker:build)
+     */
+    public static void addExtraFiles(File directory) {
+    	try {
+			copyRunScript(directory);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
 }
