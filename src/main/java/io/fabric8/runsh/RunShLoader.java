@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+import org.apache.commons.lang3.SystemUtils;
+
 
 /**
  * Load and export run-java.sh script
@@ -119,11 +121,15 @@ public class RunShLoader
             targetPath = destination.toPath();
         }
         Files.copy(getInputStream(LOCATION_RUN_SCRIPT), targetPath, StandardCopyOption.REPLACE_EXISTING);
-        Set<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(targetPath));
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        perms.add(PosixFilePermission.GROUP_EXECUTE);
-        perms.add(PosixFilePermission.OTHERS_EXECUTE);
-        Files.setPosixFilePermissions(targetPath, perms);
+        
+        if (SystemUtils.IS_OS_UNIX) {
+	        Set<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(targetPath));
+	        perms.add(PosixFilePermission.OWNER_EXECUTE);
+	        perms.add(PosixFilePermission.GROUP_EXECUTE);
+	        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+	        Files.setPosixFilePermissions(targetPath, perms);
+        }
+        
         return targetPath.toFile();
     }
 
