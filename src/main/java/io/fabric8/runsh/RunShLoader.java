@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -119,12 +120,24 @@ public class RunShLoader
             targetPath = destination.toPath();
         }
         Files.copy(getInputStream(LOCATION_RUN_SCRIPT), targetPath, StandardCopyOption.REPLACE_EXISTING);
-        Set<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(targetPath));
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        perms.add(PosixFilePermission.GROUP_EXECUTE);
-        perms.add(PosixFilePermission.OTHERS_EXECUTE);
-        Files.setPosixFilePermissions(targetPath, perms);
+        setPermissionOnUnix(targetPath);
         return targetPath.toFile();
+    }
+
+    private static void setPermissionOnUnix(Path targetPath) throws IOException {
+
+        if (hasPosixFileSystem(targetPath)) {
+            Set<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(targetPath));
+            perms.add(PosixFilePermission.OWNER_EXECUTE);
+            perms.add(PosixFilePermission.GROUP_EXECUTE);
+            perms.add(PosixFilePermission.OTHERS_EXECUTE);
+            Files.setPosixFilePermissions(targetPath, perms);
+        }
+    }
+
+    // Check whether we can use Posix operations on the target filesystem
+    private static boolean hasPosixFileSystem(Path targetPath) {
+        return targetPath.getFileSystem().provider().getFileAttributeView(targetPath, PosixFileAttributeView.class) != null;
     }
 
     /**
