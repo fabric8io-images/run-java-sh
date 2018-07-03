@@ -13,14 +13,14 @@ Some highlights:
   - ash
   - dash
   - ksh
-  
+
   `zsh` is *not supported* yet.
 * Support for switching on debugging via the environment variable `JAVA_DEBUG`
 * Autodetection of JAR files within a directory
 * Support for [fish-pepper](https://github.com/fabric8io-images/fish-pepper) so that this script can be used as a fish-pepper block
 * Integration tests for all those shells mentioned above. See the build on [CircleCI](https://circleci.com/gh/fabric8io-images/run-java-sh) for more details. Look in the "Artifacts" tab of a test run for the test results.
 * Maven artefacts for easy usage of this script in Maven projects.
- 
+
 The full documentation for `run-java.sh` can be found in this [README](fish-pepper/run-java-sh/readme.md)
 
 ### Installation
@@ -35,7 +35,7 @@ Maven builds can declare a dependency on
 <dependency>
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 
@@ -43,11 +43,42 @@ Then, within your code the script can be obtained with
 
 ```java
 
-// Copy it to a destination, possibly somwhere below target/
+// Copy it to a destination, possibly somewhere below target/
 RunShLoader.copyRunScript(new File("target/assembly/startup/"));
 ```
 
-You can also use this jar file directly for extracting the shell script on the fly, 
+If you want to use this script in Docker image built with [maven-docker-plugin](https://github.com/fabric8io/docker-maven-plugin), the startup script can be directly used by declaring
+a plugin dependency like:
+
+```xml
+<plugin>
+  <groupId>io.fabric8</groupId>
+  <artifactId>docker-maven-plugin</artifactId>
+  <version>0.26.0</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>run-java-sh</artifactId>
+      <version>1.2-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+</plugin>
+```
+
+Then when you execute plugin the run script will be placed in `target/docker-extra/run-java/run-java.sh` and can be directly used e.g. in a Dockerfile for the _simple Dockerfile_ mode:
+
+```Dockerfile
+FROM openjdk:jre
+
+ADD target/${project.build.finalName}.jar /opt/hello-world.jar
+ADD target/docker-extra/run-java/run-java.sh /opt
+
+CMD JAVA_MAIN_CLASS=HelloWorld sh /opt/run-java.sh
+```
+
+You can also use this jar file directly for extracting the shell script on the fly,
 or even executing it:
 
 ```
@@ -83,7 +114,7 @@ For more information on fish-pepper please refer to its [documentation](https://
 
 ### Integration Test
 
-`run-java.sh` uses [bats](https://github.com/sstephenson/bats) for bash integration testing. 
+`run-java.sh` uses [bats](https://github.com/sstephenson/bats) for bash integration testing.
 The tests are typically fired up by using a Docker test container which contains all shells which are supported, but you can call the test locally, too.
 
 #### Running test locally
@@ -102,7 +133,7 @@ The tests are typically fired up by using a Docker test container which contains
   - `JDK_TAG` : Which JVM to use for testing. Should be `openjdk8` or `openjdk9`
   - `MEMORY` : A memory limit to set to the container
   - `CPUS` : Number of cores to constraint the container to
-  - `REPORT_DIR` : Directory where to store the reports. By default this in the top-level `reports/` directory. 
+  - `REPORT_DIR` : Directory where to store the reports. By default this in the top-level `reports/` directory.
 
 Example:
 
