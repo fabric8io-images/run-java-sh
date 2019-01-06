@@ -580,8 +580,8 @@ run() {
   # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg.
   # However it could be two args (see above). zsh doesn't like this btw, but zsh is not
   # supported anyway.
-  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $@
-  exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $@
+  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
+  exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
 }
 
 # =============================================================================
@@ -601,4 +601,4 @@ elif [ "${first_arg}" = "run" ]; then
   # as first argument to your
   shift
 fi
-run $@
+run "$@"
