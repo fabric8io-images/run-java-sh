@@ -587,11 +587,11 @@ run() {
   cd ${JAVA_APP_DIR}
   if [ -n "${JAVA_MAIN_CLASS:-}" ] ; then
      args="${JAVA_MAIN_CLASS}"
-  else
-     # Either JAVA_MAIN_CLASS or JAVA_APP_JAR has been set in load_env()
-     # So no ${JAVA_APP_JAR:-} safeguard is needed here. Actually its good when the script
-     # dies here if JAVA_APP_JAR would not be set for some reason (see option `set -u` above)
+  elif [ -n "${JAVA_APP_JAR:-}" ]; then
      args="-jar ${JAVA_APP_JAR}"
+  else
+     echo "Either JAVA_MAIN_CLASS or JAVA_APP_JAR needs to be given"
+     exit 1
   fi
   # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg.
   # However it could be two args (see above). zsh doesn't like this btw, but zsh is not
