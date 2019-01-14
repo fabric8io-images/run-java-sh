@@ -305,6 +305,9 @@ calc_max_memory() {
       return
     fi
     calc_mem_opt "${CONTAINER_MAX_MEMORY}" "${JAVA_MAX_MEM_RATIO}" "mx"
+  # When JAVA_MAX_MEM_RATIO not set and JVM >= 10 no max_memory
+  elif [ "${JAVA_MAJOR_VERSION:-0}" -ge "10" ]; then
+    return
   elif [ "${CONTAINER_MAX_MEMORY}" -le 314572800 ]; then
     # Restore the one-fourth default heap size instead of the one-half below 300MB threshold
     # See https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size
@@ -351,6 +354,9 @@ c2_disabled() {
 }
 
 jit_options() {
+  if [ "${JAVA_MAJOR_VERSION:-0}" -ge "10" ]; then
+    return
+  fi
   # Check whether -XX:TieredStopAtLevel is already given in JAVA_OPTIONS
   if echo "${JAVA_OPTIONS:-}" | grep -q -- "-XX:TieredStopAtLevel"; then
     return
@@ -383,6 +389,11 @@ ci_compiler_count() {
 }
 
 cpu_options() {
+  # JVMs >= 10 know about CPU limits
+  if [ "${JAVA_MAJOR_VERSION:-0}" -ge "10" ]; then
+    return
+  fi
+
   local core_limit="${JAVA_CORE_LIMIT:-}"
   if [ "$core_limit" = "0" ]; then
     return
@@ -410,14 +421,19 @@ heap_ratio() {
 # -XX:GCTimeRatio=4
 # -XX:AdaptiveSizePolicyWeight=90
 gc_options() {
-    if echo "${JAVA_OPTIONS:-}" | grep -q -- "-XX:.*Use.*GC"; then
-      return
-    fi
-    local opts="-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 $(heap_ratio)"
-    if [ -z "${JAVA_MAJOR_VERSION:-}" ] || [ "${JAVA_MAJOR_VERSION:-}" != "7" ]; then
-      opts="${opts} -XX:+ExitOnOutOfMemoryError"
-    fi
-    echo $opts
+  if echo "${JAVA_OPTIONS:-}" | grep -q -- "-XX:.*Use.*GC"; then
+    return
+  fi
+
+  local opts=""
+  # for JVMs < 10 set GC settings
+  if [ -z "${JAVA_MAJOR_VERSION:-}" ] || [ "${JAVA_MAJOR_VERSION:-0}" -lt "10" ]; then
+    opts="${opts} -XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 $(heap_ratio)"
+  fi
+  if [ -z "${JAVA_MAJOR_VERSION:-}" ] || [ "${JAVA_MAJOR_VERSION:-}" != "7" ]; then
+    opts="${opts} -XX:+ExitOnOutOfMemoryError"
+  fi
+  echo $opts
 }
 
 java_default_options() {
@@ -580,8 +596,8 @@ run() {
   # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg.
   # However it could be two args (see above). zsh doesn't like this btw, but zsh is not
   # supported anyway.
-  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $@
-  exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} $@
+  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
+  exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
 }
 
 # =============================================================================
@@ -601,4 +617,4 @@ elif [ "${first_arg}" = "run" ]; then
   # as first argument to your
   shift
 fi
-run $@
+run "$@"
