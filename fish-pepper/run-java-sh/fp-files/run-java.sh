@@ -369,7 +369,11 @@ jit_options() {
 # Switch on diagnostics except when switched off
 diagnostics_options() {
   if [ -n "${JAVA_DIAGNOSTICS:-}" ]; then
-    echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
+    if [ "${JAVA_MAJOR_VERSION:-0}" -ge "11" ]; then
+      echo "-XX:NativeMemoryTracking=summary -Xlog:gc*:stdout:time -XX:+UnlockDiagnosticVMOptions"
+    else
+      echo "-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
+    fi
   fi
 }
 
