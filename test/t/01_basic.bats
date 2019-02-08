@@ -55,6 +55,30 @@ load test_helper
   assert_status 0
 }
 
+@test "Exact one WAR found (with arg)" {
+  d=$(mktmpdir "1war")
+  cp "$TEST_JAR_DIR/test.jar" "$d/test.war"
+  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA run --user roland
+  echo $status
+  echo $output
+
+  assert_jvmarg "-XX:\+UseParallelGC"
+  assert_jvmarg "-XX:GCTimeRatio=4"
+  assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
+  assert_jvmarg "-XX:\+ExitOnOutOfMemoryError"
+  assert_jvmarg "-XX:MinHeapFreeRatio=20"
+  assert_jvmarg "-XX:MaxHeapFreeRatio=40"
+
+  assert_command_contains "-cp ."
+  assert_command_contains "-jar $d/test.war"
+  assert_command_contains_not "TestMain"
+
+  assert_arg "--user"
+  assert_arg "roland"
+
+  assert_status 0
+}
+
 @test "Exact one JAR found but without JAVA_MAIN_CLASS and manifest entry" {
   d=$(mktmpdir "1jar-without-manifest")
   cp "$TEST_JAR_DIR/test-without-manifest-entry.jar" "$d/test.jar"
