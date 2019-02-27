@@ -1,0 +1,207 @@
+# --------------------------------
+# Integration test for run-java.sh
+# --------------------------------
+
+job_defaults: &job_defaults
+  environment:
+    JDK8_TAG: 8u151
+    JDK9_TAG: 9.0.1-11
+
+version: 2
+
+jobs:
+  # Create the Docker image used for running the tests
+  # Two versions for Java 8 and Java 9
+  test_runner_8:
+    <<: *job_defaults
+    
+    docker:
+     - image: docker:17.09.0-ce-git
+
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.09.0-ce
+
+      - restore_cache:
+          key: docker-8-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
+          
+      - run:
+          name: Create and push builder image for Java 8
+          working_directory: test/docker
+          command: |
+            if [ ! -f timestamp ]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker build --build-arg JDK=${JDK8_TAG} -t fabric8/run-java-sh-test:${JDK8_TAG} .
+              docker push fabric8/run-java-sh-test:${JDK8_TAG}
+              docker tag fabric8/run-java-sh-test:${JDK8_TAG} fabric8/run-java-sh-test:openjdk8
+              docker push fabric8/run-java-sh-test:openjdk8
+              docker tag fabric8/run-java-sh-test:${JDK8_TAG} fabric8/run-java-sh-test:latest
+              docker push fabric8/run-java-sh-test:latest              
+              touch timestamp
+            fi
+
+      - save_cache:
+          key: docker-8-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
+          paths: 
+            - test/docker/timestamp
+            
+  test_runner_9:
+    <<: *job_defaults
+
+    docker:
+      - image: docker:17.09.0-ce-git
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 17.09.0-ce
+
+      # Only build the docker image if not already build and pushed.
+      # This is determined by the checksums of Dockerfile and run_tests.sh
+      - restore_cache:
+          key: docker-9-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
+          
+      - run:
+          name: Create and push builder image for Java 9
+          working_directory: test/docker
+          command: |
+            if [ ! -f timestamp ]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker build --build-arg JDK=${JDK9_TAG} -t fabric8/run-java-sh-test:${JDK9_TAG} .
+              docker push fabric8/run-java-sh-test:${JDK9_TAG}
+              docker tag fabric8/run-java-sh-test:${JDK9_TAG} fabric8/run-java-sh-test:openjdk9
+              docker push fabric8/run-java-sh-test:openjdk9
+              touch timestamp
+            fi
+
+      - save_cache:
+          key: docker-9-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
+          paths: 
+            - test/docker/timestamp
+            
+  # Run all test in a machine in order to start Docker containers
+  # with various memory and CPU settings. In order to save time,
+  # run everything in a single job
+  vm_test:
+    <<: *job_defaults
+    
+    machine: true
+    
+    steps:
+      - checkout
+      
+      - run:
+          name: Run tests for JDK 8 / unlimited
+          environment:
+            REPORT_DIR: reports/unlimited/jdk8
+            JDK_TAG: openjdk8
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 9 / unlimited
+          environment:
+            REPORT_DIR: reports/unlimited/jdk9
+            JDK_TAG: openjdk9
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 8 / 160m
+          environment:
+            MEMORY: 160m
+            REPORT_DIR: reports/160m/jdk8
+            JDK_TAG: openjdk8
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 9 / 160m
+          environment:
+            MEMORY: 160m
+            REPORT_DIR: reports/160m/jdk9
+            JDK_TAG: openjdk9
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 8 / 400m
+          environment:
+            MEMORY: 400m
+            REPORT_DIR: reports/400m/jdk8
+            JDK_TAG: openjdk8
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 9 / 400m
+          environment:
+            MEMORY: 400m
+            REPORT_DIR: reports/400m/jdk9
+            JDK_TAG: openjdk9
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 8 / 80m / 1.5 cpus
+          environment:
+            MEMORY: 80m
+            CPUS: "1.5"
+            REPORT_DIR: reports/80m-1.5cpus/jdk8
+            JDK_TAG: openjdk8
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 9 / 80m / 1.5 cpus
+          environment:
+            MEMORY: 80m
+            CPUS: "1.5"
+            REPORT_DIR: reports/80m-1.5cpus/jdk9
+            JDK_TAG: openjdk9
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 8 / 300m / 2 cpus
+          environment:
+            MEMORY: 300m
+            CPUS: "2"
+            REPORT_DIR: reports/300m-2cpus/jdk8
+            JDK_TAG: openjdk8
+          command: test/run_all.sh
+
+      - run:
+          name: Run tests for JDK 9 / 300m / 2 cpus
+          environment:
+            MEMORY: 300m
+            CPUS: "2"
+            REPORT_DIR: reports/300m-2cpus/jdk9
+            JDK_TAG: openjdk9
+          command: test/run_all.sh
+
+      - store_artifacts:
+          path: reports
+          destination: reports
+
+# =======================================================
+# Workflow for running all tests
+workflows:
+  version: 2
+  
+  # Run tests in a VM in order to tune memory constraints for the containers
+  # Container are started from within the VM
+  run_vm_tests:
+    jobs:
+      - test_runner_8:
+          filters:
+            tags:
+              only:
+                /v[0-9]+(\.[0-9]+)*/
+      - test_runner_9:
+          filters:
+            tags:
+              only:
+                /v[0-9]+(\.[0-9]+)*/
+      - vm_test:
+          requires:
+            - test_runner_8
+            - test_runner_9
+          filters:
+            tags:
+              only:
+                /v[0-9]+(\.[0-9]+)*/
