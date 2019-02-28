@@ -54,7 +54,7 @@ load test_helper
   echo $status
   echo $output
 
-  assert_jvmarg "-Dhttp.nonProxyHosts=\"localhost\|host.example.com\""
+  assert_jvmarg "-Dhttp.nonProxyHosts=localhost\|host.example.com"
   assert_command_contains_not "http.proxyHost"
   assert_command_contains_not "http.proxyHost"
 
@@ -69,24 +69,20 @@ load test_helper
   echo $status
   echo $output
 
-  assert_jvmarg "-Dhttp.nonProxyHosts=\"localhost\|\*.example.com\""
+  assert_jvmarg "-Dhttp.nonProxyHosts=localhost\|\*.example.com"
   assert_command_contains_not "http.proxyHost"
   assert_command_contains_not "http.proxyHost"
 
   assert_status 0
 }
 
-@test "NO_PROXY setting with wildcard in first element" {
+@test "NO_PROXY setting end to end test" {
   d=$(mktmpdir "proxy")
 
-  cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
-  no_proxy='.example.com, localhost,.cluster.local' JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  cp "$TEST_JAR_DIR/TestProxy.class" "$d/TestProxy.class"
+  HTTP_PROXY=http://dummy.com HTTPS_PROXY=http://dummy.com NO_PROXY=.google.com\|.redhat.com no_proxy=.google.com\|.redhat.com JAVA_MAIN_CLASS=TestProxy JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
   echo $status
   echo $output
-
-  assert_jvmarg "-Dhttp.nonProxyHosts=\"\*.example.com\|localhost\|\*.cluster.local\""
-  assert_command_contains_not "http.proxyHost"
-  assert_command_contains_not "http.proxyHost"
 
   assert_status 0
 }
@@ -100,7 +96,7 @@ load test_helper
 
   assert_jvmarg "-Dhttp.proxyHost=proxy -Dhttp.proxyPort=3128"
   assert_jvmarg "-Dhttps.proxyHost=proxy -Dhttps.proxyPort=4128"
-  assert_jvmarg "-Dhttp.nonProxyHosts=\"localhost\|host.example.com\""
+  assert_jvmarg "-Dhttp.nonProxyHosts=localhost\|host.example.com"
 
   assert_status 0
 }

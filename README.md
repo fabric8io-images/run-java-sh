@@ -123,7 +123,7 @@ The tests are typically fired up by using a Docker test container which contains
 * Goto directory `test/t`
 * Run: `bats .`
 * In order to use a different shell, set the environment variable _$TEST_SHELL_ : `TEST_SHELL=ash bats .`. This shell must be installed locally, too, of course.
-* You can run individual tests by calling a teat file directly: `bats 01_basic.bats`
+* You can run individual tests by calling a test file directly: `bats 01_basic.bats`
 
 #### Running in a Docker container
 
