@@ -87,6 +87,17 @@ load test_helper
   assert_status 0
 }
 
+@test "NO_PROXY setting end to end test with space" {
+  d=$(mktmpdir "proxy")
+
+  cp "$TEST_JAR_DIR/TestProxy.class" "$d/TestProxy.class"
+  HTTP_PROXY=http://dummy.com HTTPS_PROXY=http://dummy.com NO_PROXY='.redhat.com| .google.com' no_proxy='.redhat.com| .google.com' JAVA_MAIN_CLASS=TestProxy JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  echo $status
+  echo $output
+
+  assert_status 0
+}
+
 @test "All proxy settings" {
   d=$(mktmpdir "proxy")
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
