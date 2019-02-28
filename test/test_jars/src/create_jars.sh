@@ -12,5 +12,9 @@ EOT
 jar cfm ../../test.jar manifest.txt *.class
 jar cf ../../test-without-manifest-entry.jar *.class
 
+cp ../TestProxy.java ./
+javac TestProxy.java
+cp TestProxy.class ../../
+
 cd ..
 rm -rf tmp
