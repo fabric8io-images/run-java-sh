@@ -39,7 +39,8 @@ load test_helper
   echo $status
   echo $output
 
-  assert_jvmarg "-Dhttps.proxyHost=proxy -Dhttps.proxyPort=4128"
+  assert_jvmarg "-Dhttps.proxyHost=proxy"
+  assert_jvmarg "-Dhttps.proxyPort=4128"
   assert_command_contains_not "http.proxyHost"
   assert_command_contains_not "http.proxyHost"
 
