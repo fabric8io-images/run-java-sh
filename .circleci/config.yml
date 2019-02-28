@@ -11,7 +11,7 @@ version: 2
 
 jobs:
   # Create the Docker image used for running the tests
-  # Two versions for Java 8 and Java 9
+  # Two versions for Java 8 and Java 11
   test_runner_8:
     <<: *job_defaults
 
@@ -46,7 +46,7 @@ jobs:
           paths:
             - test/docker/timestamp
 
-  test_runner_9:
+  test_runner_11:
     <<: *job_defaults
 
     docker:
@@ -64,7 +64,7 @@ jobs:
           key: docker-9-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
 
       - run:
-          name: Create and push builder image for Java 9
+          name: Create and push builder image for Java 11
           working_directory: test/docker
           command: |
             if [ ! -f timestamp ]; then
@@ -192,7 +192,7 @@ workflows:
             tags:
               only:
                 /v[0-9]+(\.[0-9]+)*/
-      - test_runner_9:
+      - test_runner_11:
           filters:
             tags:
               only:
@@ -200,7 +200,7 @@ workflows:
       - vm_test:
           requires:
             - test_runner_8
-            - test_runner_9
+            - test_runner_11
           filters:
             tags:
               only:
