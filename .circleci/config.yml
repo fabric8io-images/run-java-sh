@@ -4,8 +4,8 @@
 
 job_defaults: &job_defaults
   environment:
-    JDK8_TAG: 8u151
-    JDK9_TAG: 9.0.1-11
+    JDK8_TAG: 8u181
+    JDK11_TAG: 11.0.2-jdk-stretch
 
 version: 2
 
@@ -14,7 +14,7 @@ jobs:
   # Two versions for Java 8 and Java 9
   test_runner_8:
     <<: *job_defaults
-    
+
     docker:
      - image: docker:17.09.0-ce-git
 
@@ -25,7 +25,7 @@ jobs:
 
       - restore_cache:
           key: docker-8-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
-          
+
       - run:
           name: Create and push builder image for Java 8
           working_directory: test/docker
@@ -37,15 +37,15 @@ jobs:
               docker tag fabric8/run-java-sh-test:${JDK8_TAG} fabric8/run-java-sh-test:openjdk8
               docker push fabric8/run-java-sh-test:openjdk8
               docker tag fabric8/run-java-sh-test:${JDK8_TAG} fabric8/run-java-sh-test:latest
-              docker push fabric8/run-java-sh-test:latest              
+              docker push fabric8/run-java-sh-test:latest
               touch timestamp
             fi
 
       - save_cache:
           key: docker-8-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
-          paths: 
+          paths:
             - test/docker/timestamp
-            
+
   test_runner_9:
     <<: *job_defaults
 
@@ -62,36 +62,36 @@ jobs:
       # This is determined by the checksums of Dockerfile and run_tests.sh
       - restore_cache:
           key: docker-9-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
-          
+
       - run:
           name: Create and push builder image for Java 9
           working_directory: test/docker
           command: |
             if [ ! -f timestamp ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
-              docker build --build-arg JDK=${JDK9_TAG} -t fabric8/run-java-sh-test:${JDK9_TAG} .
-              docker push fabric8/run-java-sh-test:${JDK9_TAG}
-              docker tag fabric8/run-java-sh-test:${JDK9_TAG} fabric8/run-java-sh-test:openjdk9
-              docker push fabric8/run-java-sh-test:openjdk9
+              docker build --build-arg JDK=${JDK11_TAG} -t fabric8/run-java-sh-test:${JDK11_TAG} .
+              docker push fabric8/run-java-sh-test:${JDK11_TAG}
+              docker tag fabric8/run-java-sh-test:${JDK11_TAG} fabric8/run-java-sh-test:openjdk11
+              docker push fabric8/run-java-sh-test:openjdk11
               touch timestamp
             fi
 
       - save_cache:
           key: docker-9-{{ checksum "test/docker/Dockerfile" }}-{{ checksum "test/docker/run_tests.sh" }}
-          paths: 
+          paths:
             - test/docker/timestamp
-            
+
   # Run all test in a machine in order to start Docker containers
   # with various memory and CPU settings. In order to save time,
   # run everything in a single job
   vm_test:
     <<: *job_defaults
-    
+
     machine: true
-    
+
     steps:
       - checkout
-      
+
       - run:
           name: Run tests for JDK 8 / unlimited
           environment:
@@ -100,10 +100,10 @@ jobs:
           command: test/run_all.sh
 
       - run:
-          name: Run tests for JDK 9 / unlimited
+          name: Run tests for JDK 11 / unlimited
           environment:
-            REPORT_DIR: reports/unlimited/jdk9
-            JDK_TAG: openjdk9
+            REPORT_DIR: reports/unlimited/jdk11
+            JDK_TAG: openjdk11
           command: test/run_all.sh
 
       - run:
@@ -115,11 +115,11 @@ jobs:
           command: test/run_all.sh
 
       - run:
-          name: Run tests for JDK 9 / 160m
+          name: Run tests for JDK 11 / 160m
           environment:
             MEMORY: 160m
-            REPORT_DIR: reports/160m/jdk9
-            JDK_TAG: openjdk9
+            REPORT_DIR: reports/160m/jdk11
+            JDK_TAG: openjdk11
           command: test/run_all.sh
 
       - run:
@@ -131,11 +131,11 @@ jobs:
           command: test/run_all.sh
 
       - run:
-          name: Run tests for JDK 9 / 400m
+          name: Run tests for JDK 11 / 400m
           environment:
             MEMORY: 400m
-            REPORT_DIR: reports/400m/jdk9
-            JDK_TAG: openjdk9
+            REPORT_DIR: reports/400m/jdk11
+            JDK_TAG: openjdk11
           command: test/run_all.sh
 
       - run:
@@ -148,12 +148,12 @@ jobs:
           command: test/run_all.sh
 
       - run:
-          name: Run tests for JDK 9 / 80m / 1.5 cpus
+          name: Run tests for JDK 11 / 80m / 1.5 cpus
           environment:
             MEMORY: 80m
             CPUS: "1.5"
-            REPORT_DIR: reports/80m-1.5cpus/jdk9
-            JDK_TAG: openjdk9
+            REPORT_DIR: reports/80m-1.5cpus/jdk11
+            JDK_TAG: openjdk11
           command: test/run_all.sh
 
       - run:
@@ -166,12 +166,12 @@ jobs:
           command: test/run_all.sh
 
       - run:
-          name: Run tests for JDK 9 / 300m / 2 cpus
+          name: Run tests for JDK 11 / 300m / 2 cpus
           environment:
             MEMORY: 300m
             CPUS: "2"
-            REPORT_DIR: reports/300m-2cpus/jdk9
-            JDK_TAG: openjdk9
+            REPORT_DIR: reports/300m-2cpus/jdk11
+            JDK_TAG: openjdk11
           command: test/run_all.sh
 
       - store_artifacts:
@@ -182,7 +182,7 @@ jobs:
 # Workflow for running all tests
 workflows:
   version: 2
-  
+
   # Run tests in a VM in order to tune memory constraints for the containers
   # Container are started from within the VM
   run_vm_tests:
