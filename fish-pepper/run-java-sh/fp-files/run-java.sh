@@ -483,7 +483,7 @@ proxy_options() {
 
   local noProxy="${no_proxy:-${NO_PROXY:-}}"
   if [ -n "$noProxy" ] ; then
-    ret="$ret -Dhttp.nonProxyHosts=$(echo "|$noProxy" | sed -e 's/,[[:space:]]*/|/g' | sed -e 's/|\./|\*\./g' | cut -c 2-)"
+    ret="$ret -Dhttp.nonProxyHosts=$(echo "|$noProxy" | sed -e 's/,[[:space:]]*/|/g' | sed -e 's/[[:space:]]//g' | sed -e 's/|\./|\*\./g' | cut -c 2-)"
   fi
   echo "$ret"
 }
