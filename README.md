@@ -152,3 +152,12 @@ Currently the following combinations are tested
 * OpenJDK 8 and OpenJDK 9
 * Memory limits: unlimited, 160m, 400m
 * CPUs: unlimited, 1.5
+
+#### Releasing
+
+Release should be performed via Maven, so that the Maven artefacts get updated properly:
+
+```
+mvn -Dmaven.repo.local=/tmp/clean-repo -DdevelopmentVersion=1.3-SNAPSHOT -DreleaseVersion=1.3.4 -Dtag=v1.3.4 -Prelease release:prepare
+mvn -Dmaven.repo.local=/tmp/clean-repo -Prelease release:perform
+```
