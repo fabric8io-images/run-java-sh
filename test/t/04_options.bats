@@ -10,8 +10,8 @@ load test_helper
   echo $output
 
   if [ -n "${MEMORY:-}" ]; then
-      assert_regexp "-Xmx"
-      assert_not_regexp "-Xms"
+      assert_regexp "-XX:MaxRAMPercentag"
+      assert_not_regexp "-XX:InitialRAMPercentage"
   fi
   if [ -n "${CPUS}" ]; then
     assert_regexp "CICompilerCount"
@@ -25,8 +25,8 @@ load test_helper
   echo $output
 
   if [ -n "${MEMORY:-}" ]; then
-    assert_regexp "-Xmx"
-    assert_regexp "-Xms"
+    assert_regexp "-XX:MaxRAMPercentag"
+    assert_regexp "-XX:MinRAMPercentage"
   fi
   if [ -n "${CPUS}" ]; then
     assert_not_regexp "CICompilerCount"
