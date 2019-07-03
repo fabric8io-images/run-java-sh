@@ -45,6 +45,11 @@ if [ -n "${CPU_SHARES}" ]; then
 fi
 
 echo "-----------------------------------"
+echo "Announcing Java version:"
+java -version
+echo -e "-----------------------------------\n\n"
+
+echo "-----------------------------------"
 echo "Running run-java test suite:"
 echo -e $diag
 echo -e "-----------------------------------\n\n"
