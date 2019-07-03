@@ -361,6 +361,9 @@ options() {
     if [ $(hasflag --proxy) ]; then
       ret="$ret $(proxy_options)"
     fi
+    if [ $(hasflag --memory) ]; then
+      ret="$ret $(memory_options)"
+    fi
     if [ $(hasflag --java-default) ]; then
       ret="$ret $(java_default_options)"
     fi
