@@ -1,14 +1,14 @@
 #!/bin/bash
 
-worst_rc=0
-RUN_JAVA_DIR=${RUN_JAVA_DIR:-/opt/test}
-REPORT_DIR=${REPORT_DIR:-${RUN_JAVA_DIR}/reports}
-[ -d ${REPORT_DIR} ] || mkdir -p ${REPORT_DIR}
-
 echo "-----------------------------------"
 echo "Announcing Java version:"
 java -version
 echo -e "-----------------------------------\n\n"
+
+worst_rc=0
+RUN_JAVA_DIR=${RUN_JAVA_DIR:-/opt/test}
+REPORT_DIR=${REPORT_DIR:-${RUN_JAVA_DIR}/reports}
+[ -d ${REPORT_DIR} ] || mkdir -p ${REPORT_DIR}
 
 for shell in bash sh ksh dash ash
 do
