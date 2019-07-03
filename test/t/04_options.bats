@@ -13,9 +13,6 @@ load test_helper
       assert_regexp "-XX:MaxRAMPercentag"
       assert_not_regexp "-XX:InitialRAMPercentage"
   fi
-  if [ -n "${CPUS}" ]; then
-    assert_regexp "CICompilerCount"
-  fi
   assert_status 0
 }
 
@@ -27,9 +24,6 @@ load test_helper
   if [ -n "${MEMORY:-}" ]; then
     assert_regexp "-XX:MaxRAMPercentage"
     assert_regexp "-XX:MinRAMPercentage"
-  fi
-  if [ -n "${CPUS}" ]; then
-    assert_not_regexp "CICompilerCount"
   fi
   assert_status 0
 }
