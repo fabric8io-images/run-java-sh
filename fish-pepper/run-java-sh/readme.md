@@ -61,6 +61,7 @@ export JAVA_APP_DIR=/deployments
 ./run-java.sh --user maxmorlock --password secret
 ```
 
+
 ### Options
 
 The subcommand `options` can be used to print options to standard output so that is can be easily used to feed it to another, Java based application.
