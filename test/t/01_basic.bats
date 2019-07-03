@@ -38,12 +38,8 @@ load test_helper
   echo $status
   echo $output
 
-  assert_jvmarg "-XX:\+UseParallelGC"
-  assert_jvmarg "-XX:GCTimeRatio=4"
-  assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
-  assert_jvmarg "-XX:\+ExitOnOutOfMemoryError"
-  assert_jvmarg "-XX:MinHeapFreeRatio=20"
-  assert_jvmarg "-XX:MaxHeapFreeRatio=40"
+  assert_jvmarg "-XX:MaxRAMPercentage=85.0"
+  assert_jvmarg "-XX:MinRAMPercentage=85.0"
 
   assert_command_contains "-cp ."
   assert_command_contains "-jar $d/test.jar"
@@ -62,12 +58,8 @@ load test_helper
   echo $status
   echo $output
 
-  assert_jvmarg "-XX:\+UseParallelGC"
-  assert_jvmarg "-XX:GCTimeRatio=4"
-  assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
-  assert_jvmarg "-XX:\+ExitOnOutOfMemoryError"
-  assert_jvmarg "-XX:MinHeapFreeRatio=20"
-  assert_jvmarg "-XX:MaxHeapFreeRatio=40"
+  assert_jvmarg "-XX:MaxRAMPercentage=85.0"
+  assert_jvmarg "-XX:MinRAMPercentage=85.0"
 
   assert_command_contains "-cp ."
   assert_command_contains "-jar $d/test.war"
