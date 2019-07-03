@@ -30,7 +30,7 @@ jobs:
           name: Create and push builder image for Java 8
           working_directory: test/docker
           command: |
-            if [ -f timestamp ]; then
+            if [ ! -f timestamp ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               docker build --build-arg JDK=${JDK8_TAG} -t fabric8/run-java-sh-test:${JDK8_TAG} .
               docker push fabric8/run-java-sh-test:${JDK8_TAG}
