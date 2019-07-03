@@ -25,7 +25,7 @@ load test_helper
   echo $output
 
   if [ -n "${MEMORY:-}" ]; then
-    assert_regexp "-XX:MaxRAMPercentag"
+    assert_regexp "-XX:MaxRAMPercentage"
     assert_regexp "-XX:MinRAMPercentage"
   fi
   if [ -n "${CPUS}" ]; then
