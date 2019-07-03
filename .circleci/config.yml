@@ -4,7 +4,7 @@
 
 job_defaults: &job_defaults
   environment:
-    JDK8_TAG: 8u181
+    JDK8_TAG: 8u212
     JDK11_TAG: 11.0.2-jdk-stretch
 
 version: 2
