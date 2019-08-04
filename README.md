@@ -145,7 +145,7 @@ The builder containers can be recreated from the Dockerfile in `test/docker`. Lo
 
 #### CircleCI
 
-The integrations tests run on [CircleCI](https://circleci.com/) on every commit and PR. The configuration can be found in [config.yml](.circleci/config.yml). You find the test reporst in the "Artifacts" tap of a build, e.g. like [here](https://circleci.com/gh/fabric8io-images/run-java-sh/127#artifacts/containers/0).
+The integrations tests run on [CircleCI](https://circleci.com/) on every commit and PR. The configuration can be found in [config.yml](.circleci/config.yml). You find the test reports in the "Artifacts" tap of a build, e.g. like [here](https://circleci.com/gh/fabric8io-images/run-java-sh/127#artifacts/containers/0).
 
 Currently the following combinations are tested
 
