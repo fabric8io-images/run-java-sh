@@ -83,6 +83,30 @@
           </archive>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>attach-run-java-sh</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+                <artifacts>
+                  <artifact>
+                    <file>${project.build.outputDirectory}/run-java-sh/fp-files/run-java.sh</file>
+                    <type>sh</type>
+                    <classifier>sh</classifier>
+                  </artifact>
+                </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
 
     <pluginManagement>
