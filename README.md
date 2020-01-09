@@ -109,7 +109,7 @@ blocks:
 
 From within the Docker templates you then can reference this block as usual e.g. `{{= fp.block('run-java-sh','copy.dck') }}` for adding the proper `COPY` commands to your Dockerfile **and** copying over the run script into you Docker build directory.
 
-For more information on fish-pepper please refer to its [documentation](https://github.com/fabric8io-images/fish-pepper/README.md).
+For more information on fish-pepper please refer to its [documentation](https://github.com/fabric8io-images/fish-pepper).
 
 
 ### Integration Test
