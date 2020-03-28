@@ -39,13 +39,12 @@ load test_helper
   echo $output
 
   assert_jvmarg "-XX:\+ExitOnOutOfMemoryError"
-  assert_jvmarg "-XX:MinHeapFreeRatio=20"
-  assert_jvmarg "-XX:MaxHeapFreeRatio=40"
-
   if [ $(java_version) -lt 10 ]; then
     assert_jvmarg "-XX:\+UseParallelGC"
     assert_jvmarg "-XX:GCTimeRatio=4"
     assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
+    assert_jvmarg "-XX:MinHeapFreeRatio=20"
+    assert_jvmarg "-XX:MaxHeapFreeRatio=40"
   fi
 
   assert_command_contains "-cp ."
@@ -65,14 +64,13 @@ load test_helper
   echo $status
   echo $output
 
-  assert_jvmarg "-XX:\+ExitOnOutOfMemoryError"
-  assert_jvmarg "-XX:MinHeapFreeRatio=20"
-  assert_jvmarg "-XX:MaxHeapFreeRatio=40"
-
   if [ $(java_version) -lt 10 ]; then
     assert_jvmarg "-XX:\+UseParallelGC"
     assert_jvmarg "-XX:GCTimeRatio=4"
     assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
+    assert_jvmarg "-XX:\+ExitOnOutOfMemoryError"
+    assert_jvmarg "-XX:MinHeapFreeRatio=20"
+    assert_jvmarg "-XX:MaxHeapFreeRatio=40"
   fi
 
   assert_command_contains "-cp ."
