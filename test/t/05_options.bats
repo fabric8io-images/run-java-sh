@@ -9,16 +9,22 @@ load test_helper
   echo $status
   echo $output
 
-  if [ -n "${MEMORY:-}" ]; then
-      if [ $(java_version) -lt 10 ]; then
+  if [ $(java_version) -lt 10 ]; then
+    if [ -n "${MEMORY:-}" ]; then
         assert_regexp "-Xmx"
-      else
+        assert_not_regexp "-Xms"
+    fi
+    if [ -n "${CPUS}" ]; then
+      assert_regexp "CICompilerCount"
+    fi
+  else
+    if [ -n "${MEMORY:-}" ]; then
         assert_not_regexp "-Xmx"
-      fi
-      assert_not_regexp "-Xms"
-  fi
-  if [ -n "${CPUS}" ]; then
-    assert_regexp "CICompilerCount"
+        assert_not_regexp "-Xms"
+    fi
+    if [ -n "${CPUS}" ]; then
+      assert_not_regexp "CICompilerCount"
+    fi
   fi
   assert_status 0
 }
