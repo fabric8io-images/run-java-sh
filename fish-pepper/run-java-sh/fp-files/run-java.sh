@@ -191,18 +191,17 @@ init_limit_env_vars() {
 init_java_major_version() {
     # Initialize JAVA_MAJOR_VERSION variable if missing
     if [ -z "${JAVA_MAJOR_VERSION:-}" ]; then
+        local full_version=""
+
         # Parse JAVA_VERSION variable available in containers
         if [ -n "${JAVA_VERSION:-}" ]; then
-            export JAVA_MAJOR_VERSION="`echo $JAVA_VERSION | sed -e 's/([0-9]+).*/\1/'`"
-            return
+            full_version="$JAVA_VERSION"
+        elif [ -n "${JAVA_HOME:-}" ] && [ -r "${JAVA_HOME}/release" ]; then
+            full_version="$(grep -e '^JAVA_VERSION=' ${JAVA_HOME}/release | sed -e 's/.*\"\([0-9.]\{1,\}\).*/\1/')"
+        else
+            full_version=$(java -version 2>&1 | head -1 | sed -e 's/.*\"\([0-9.]\{1,\}\).*/\1/')
         fi
-        # Parse release file (translate "1.8" to "8")
-        if [ -r "${JAVA_HOME}/release" ]; then
-            export JAVA_MAJOR_VERSION="`grep -e '^JAVA_VERSION=' ${JAVA_HOME}/release | sed -e 's/.*\"(1\.)?([0-9]+).*/\2/'`"
-            return
-        fi
-        # Parse java version output (translate "1.8" to "8")
-        export JAVA_MAJOR_VERSION="`java -version 2>&1 | head -1 | sed -e 's/.*\"(1\.)?([0-9]+).*/\2/'`"
+        export JAVA_MAJOR_VERSION=$(echo $full_version | sed -e 's/\(1\.\)\{0,1\}\([0-9]\{1,\}\).*/\2/')
     fi
 }
 

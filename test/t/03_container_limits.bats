@@ -9,7 +9,7 @@ load test_helper
   cp "$TEST_JAR_DIR/test.jar" "$d/test.jar"
 
   create_non_exec_run_script "$d/mem_test.sh" 'echo ${CONTAINER_MAX_MEMORY:-}'
-  JAVA_APP_DIR="$d" run $TEST_SHELL $d/mem_test.sh  JAVA_APP_DIR=$d run $TEST_SHELL $RUN_JAVA
+  JAVA_APP_DIR="$d" run $TEST_SHELL $d/mem_test.sh
   local result=$(echo "$output" | tail -n1)
   echo "Status: $status"
   echo $output

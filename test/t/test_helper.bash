@@ -75,7 +75,7 @@ get_arg() {
 create_non_exec_run_script() {
   local out=$1
   local extra=$2
-  local script=$(cat $RUN_JAVA | sed -e 's/^[[:space:]]*exec[[:space:]]/#  exec /g')
+  local script=$(cat $RUN_JAVA | sed -e 's/^[ ]*exec /# exec /g')
 
   cat - <<EOT >$out
 $script
