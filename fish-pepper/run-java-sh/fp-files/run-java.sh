@@ -188,6 +188,23 @@ init_limit_env_vars() {
   fi
 }
 
+init_java_major_version() {
+    # Initialize JAVA_MAJOR_VERSION variable if missing
+    if [ -z "${JAVA_MAJOR_VERSION:-}" ]; then
+        local full_version=""
+
+        # Parse JAVA_VERSION variable available in containers
+        if [ -n "${JAVA_VERSION:-}" ]; then
+            full_version="$JAVA_VERSION"
+        elif [ -n "${JAVA_HOME:-}" ] && [ -r "${JAVA_HOME}/release" ]; then
+            full_version="$(grep -e '^JAVA_VERSION=' ${JAVA_HOME}/release | sed -e 's/.*\"\([0-9.]\{1,\}\).*/\1/')"
+        else
+            full_version=$(java -version 2>&1 | head -1 | sed -e 's/.*\"\([0-9.]\{1,\}\).*/\1/')
+        fi
+        export JAVA_MAJOR_VERSION=$(echo $full_version | sed -e 's/\(1\.\)\{0,1\}\([0-9]\{1,\}\).*/\2/')
+    fi
+}
+
 load_env() {
   local script_dir="$1"
 
@@ -607,6 +624,9 @@ run() {
 
 # =============================================================================
 # Fire up
+
+# Initialize JAVA_MAJOR_VERSION variable if missing
+init_java_major_version
 
 # Set env vars reflecting limits
 init_limit_env_vars
