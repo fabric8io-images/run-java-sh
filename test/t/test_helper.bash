@@ -108,3 +108,9 @@ ceiling() {
     }
   '
 }
+
+# Maja java version (7,8,9,10,...)
+java_version() {
+  local full_version=$(java -version 2>&1 | head -1 | sed -e 's/.*\"\([0-9.]\{1,\}\).*/\1/')
+  echo $full_version | sed -e 's/\(1\.\)\{0,1\}\([0-9]\{1,\}\).*/\2/'
+}
