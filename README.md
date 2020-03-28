@@ -149,7 +149,7 @@ The integrations tests run on [CircleCI](https://circleci.com/) on every commit 
 
 Currently the following combinations are tested
 
-* OpenJDK 8 and OpenJDK 9
+* OpenJDK 8 and OpenJDK 11
 * Memory limits: unlimited, 160m, 400m
 * CPUs: unlimited, 1.5
 
