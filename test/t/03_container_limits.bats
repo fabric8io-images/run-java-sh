@@ -37,7 +37,11 @@ load test_helper
   if [ -n "$MEMORY" ]; then
     run $TEST_SHELL $RUN_JAVA options
     echo $output
-    assert_regexp "-Xmx"
+    if [ $(java_version) -lt 10 ]; then
+      assert_regexp "-Xmx"
+    else
+      assert_not_regexp "-Xmx"
+    fi
     assert_status 0
   fi
 }
