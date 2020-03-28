@@ -24,18 +24,17 @@ load test_helper
 }
 
 @test "options command - memory" {
-  JAVA_APP_DIR=$RUN_JAVA_DIR JAVA_INIT_MEM_RATIO=0.5 run $TEST_SHELL $RUN_JAVA options --memory
+  JAVA_APP_DIR=$RUN_JAVA_DIR JAVA_INIT_MEM_RATIO=50 run $TEST_SHELL $RUN_JAVA options --memory
   echo $status
   echo $output
 
   if [ -n "${MEMORY:-}" ]; then
     if [ $(java_version) -lt 10 ]; then
       assert_regexp "-Xmx"
-      assert_regexp "-Xms"
     else
       assert_not_regexp "-Xmx"
-      assert_not_regexp "-Xms"
     fi
+    assert_regexp "-Xms"
   fi
   if [ -n "${CPUS}" ]; then
     assert_not_regexp "CICompilerCount"
