@@ -46,7 +46,7 @@ load test_helper
     assert_jvmarg "-XX:\+UseParallelGC"
     assert_jvmarg "-XX:GCTimeRatio=4"
     assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
-  ]
+  fi
 
   assert_command_contains "-cp ."
   assert_command_contains "-jar $d/test.jar"
@@ -73,7 +73,7 @@ load test_helper
     assert_jvmarg "-XX:\+UseParallelGC"
     assert_jvmarg "-XX:GCTimeRatio=4"
     assert_jvmarg "-XX:AdaptiveSizePolicyWeight=90"
-  ]
+  fi
 
   assert_command_contains "-cp ."
   assert_command_contains "-jar $d/test.war"
