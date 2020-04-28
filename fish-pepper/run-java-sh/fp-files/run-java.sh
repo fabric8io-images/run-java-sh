@@ -33,7 +33,7 @@
 #                             https://www.youtube.com/watch?v=w1rZOY5gbvk
 #                             https://vimeo.com/album/4133413/video/181900266
 # Also note that heap is only a small portion of the memory used by a JVM. There are lot
-# of other memory areas (metadata, thread, code cache, ...) which addes to the overall
+# of other memory areas (metadata, thread, code cache, ...) which adds to the overall
 # size. When your container gets killed because of an OOM, then you should tune
 # the absolute values.
 # JAVA_INIT_MEM_RATIO: Ratio use to calculate a default intial heap memory, in percent.
@@ -254,18 +254,19 @@ run_java_options() {
 
 debug_options() {
   if [ -n "${JAVA_ENABLE_DEBUG:-}" ] || [ -n "${JAVA_DEBUG_ENABLE:-}" ] ||  [ -n "${JAVA_DEBUG:-}" ]; then
-	local debug_port="${JAVA_DEBUG_PORT:-5005}"
+	  local debug_port="${JAVA_DEBUG_PORT:-5005}"
     local suspend_mode="n"
     if [ -n "${JAVA_DEBUG_SUSPEND:-}" ]; then
       if ! echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$'; then
         suspend_mode="y"
       fi
     fi
-	if [ "${JAVA_MAJOR_VERSION:-0}" -ge "9" ]; then
-		echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=*:${debug_port}"   
-	else
-		echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=${debug_port}"
-	fi
+
+    local address_prefix=""
+	  if [ "${JAVA_MAJOR_VERSION:-0}" -ge "9" ]; then
+      address_prefix="*:"
+	  fi
+	  echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=${suspend_mode},address=${address_prefix}${debug_port}"
   fi
 }
 
