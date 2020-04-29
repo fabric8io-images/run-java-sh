@@ -58,10 +58,11 @@ check_enable_debug() {
     port_expected=$port
   fi
   if [ $(java_version) -gt 9 ]; then
-    port_expected="*:${port_expected}"
+    port_expected="\\*:${port_expected}"
   fi
   eval "JAVA_APP_DIR=$d ${envvar}=true $port_env run $TEST_SHELL $RUN_JAVA"
   echo $(java_version)
+  echo $port_expected
   echo $status
   echo $output | tail -n1
 
