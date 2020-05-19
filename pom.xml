@@ -3,7 +3,7 @@
 
   <groupId>io.fabric8</groupId>
   <artifactId>run-java-sh</artifactId>
-  <version>1.3.8</version>
+  <version>1.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>run-java-sh</name>
@@ -18,7 +18,7 @@
   <scm>
     <connection>scm:git:git://github.com/fabric8io-images/run-java-sh.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/fabric8io-images/run-java-sh.git</developerConnection>
-    <tag>v1.3.8</tag>
+    <tag>HEAD</tag>
     <url>git://github.com/fabric8io-images/run-java-sh.git</url>
   </scm>
 
