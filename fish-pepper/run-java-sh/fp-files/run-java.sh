@@ -201,7 +201,7 @@ init_java_major_version() {
         else
             full_version=$(java -version 2>&1 | head -1 | sed -e 's/.*\"\([0-9.]\{1,\}\).*/\1/')
         fi
-        export JAVA_MAJOR_VERSION=$(echo $full_version | sed -e 's/\(1\.\)\{0,1\}\([0-9]\{1,\}\).*/\2/')
+        export JAVA_MAJOR_VERSION=$(echo $full_version | sed -e 's/[^0-9]*\(1\.\)\{0,1\}\([0-9]\{1,\}\).*/\2/')
     fi
 }
 
