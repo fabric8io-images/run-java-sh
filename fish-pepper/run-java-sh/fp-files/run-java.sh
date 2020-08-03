@@ -620,10 +620,14 @@ run() {
      echo "Either JAVA_MAIN_CLASS or JAVA_APP_JAR needs to be given"
      exit 1
   fi
+
+  if [ "${HIDE_CMD_LINE:-}" != 1 ] && [ "${HIDE_CMD_LINE:-}" != true ]; then
+    echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
+  fi
+
   # Don't put ${args} in quotes, otherwise it would be interpreted as a single arg.
   # However it could be two args (see above). zsh doesn't like this btw, but zsh is not
   # supported anyway.
-  echo exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
   exec $(exec_args) java $(java_options) -cp "$(classpath)" ${args} "$@"
 }
 
