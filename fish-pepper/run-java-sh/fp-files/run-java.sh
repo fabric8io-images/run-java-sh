@@ -145,16 +145,31 @@ calc() {
 
 # Based on the cgroup limits, figure out the max number of core we should utilize
 core_limit() {
-  local cpu_period_file="/sys/fs/cgroup/cpu/cpu.cfs_period_us"
-  local cpu_quota_file="/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
-  if [ -r "${cpu_period_file}" ]; then
-    local cpu_period="$(cat ${cpu_period_file})"
+  if [ -r "/sys/fs/cgroup/cgroup.controllers" ]; then
+    # cgroup v2
+    local cpu_file="/sys/fs/cgroup/cpu.max"
+    if [ -r "${cpu_file}" ]; then
+      local cpu_quota="$(cat ${cpu_file} | awk '{ print $1 }')"
+      local cpu_period="$(cat ${cpu_file} | awk '{ print $2 }')"
 
-    if [ -r "${cpu_quota_file}" ]; then
-      local cpu_quota="$(cat ${cpu_quota_file})"
-      # cfs_quota_us == -1 --> no restrictions
-      if [ ${cpu_quota:-0} -ne -1 ]; then
+      # cfs_quota_us == max --> no restrictions
+      if [ "${cpu_quota:-0}" != "max" ]; then
         echo $(calc 'ceil($1/$2)' "${cpu_quota}" "${cpu_period}")
+      fi
+    fi
+  else
+    # cgroup v1
+    local cpu_period_file="/sys/fs/cgroup/cpu/cpu.cfs_period_us"
+    local cpu_quota_file="/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+    if [ -r "${cpu_period_file}" ]; then
+      local cpu_period="$(cat ${cpu_period_file})"
+
+      if [ -r "${cpu_quota_file}" ]; then
+        local cpu_quota="$(cat ${cpu_quota_file})"
+        # cfs_quota_us == -1 --> no restrictions
+        if [ ${cpu_quota:-0} -ne -1 ]; then
+          echo $(calc 'ceil($1/$2)' "${cpu_quota}" "${cpu_period}")
+        fi
       fi
     fi
   fi
@@ -163,12 +178,21 @@ core_limit() {
 max_memory() {
   # High number which is the max limit until which memory is supposed to be
   # unbounded.
-  local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+
+  local mem_file=""
+  if [ -r "/sys/fs/cgroup/cgroup.controllers" ]; then
+    # cgroup v2
+    mem_file="/sys/fs/cgroup/memory.max"
+  else
+    # cgroup v1
+    mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+  fi
+
   if [ -r "${mem_file}" ]; then
     local max_mem_cgroup="$(cat ${mem_file})"
     local max_mem_meminfo_kb="$(cat /proc/meminfo | awk '/MemTotal/ {print $2}')"
     local max_mem_meminfo="$(expr $max_mem_meminfo_kb \* 1024)"
-    if [ ${max_mem_cgroup:-0} != -1 ] && [ ${max_mem_cgroup:-0} -lt ${max_mem_meminfo:-0} ]
+    if [ ${max_mem_cgroup:-0} != -1 ] && [ "${max_mem_cgroup:-max}" != "max" ] && [ ${max_mem_cgroup:-0} -lt ${max_mem_meminfo:-0} ]
     then
       echo "${max_mem_cgroup}"
     fi
