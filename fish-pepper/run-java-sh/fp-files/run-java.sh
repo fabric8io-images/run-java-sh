@@ -157,6 +157,22 @@ core_limit() {
         echo $(calc 'ceil($1/$2)' "${cpu_quota}" "${cpu_period}")
       fi
     fi
+  else
+    # it may be Cgroups v2
+    local cg2_mount_point="$(cat /proc/mounts | grep cgroup2 | awk '{ print $2 }')"
+    if [ -n "${cg2_mount_point}" -a -r /proc/self/cgroup ]; then
+      # /proc/self/cgroup may give e.g., "0::/user.slice/.../app.slice/xxx.scope"
+      local cg2_path="$(cut -d ':' -f3- /proc/self/cgroup)"
+      local cpu_file="${cg2_mount_point}${cg2_path}/cpu.max"
+      if [ -r "${cpu_file}" ]; then
+        # https://www.kernel.org/doc/Documentation/cgroup-v2.txt
+        local quota="$(awk '{print $1}' ${cpu_file})"
+        local duration="$(awk '{print $2}' ${cpu_file})"
+        if [ "max" != "${quota}" ]; then
+          echo $(calc 'ceil($1/$2)' "${quota}" "${duration}")
+        fi
+      fi
+    fi
   fi
 }
 
@@ -164,13 +180,29 @@ max_memory() {
   # High number which is the max limit until which memory is supposed to be
   # unbounded.
   local mem_file="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+  local max_mem_meminfo_kb="$(cat /proc/meminfo | awk '/MemTotal/ {print $2}')"
+  local max_mem_meminfo="$(expr $max_mem_meminfo_kb \* 1024)"
   if [ -r "${mem_file}" ]; then
     local max_mem_cgroup="$(cat ${mem_file})"
-    local max_mem_meminfo_kb="$(cat /proc/meminfo | awk '/MemTotal/ {print $2}')"
-    local max_mem_meminfo="$(expr $max_mem_meminfo_kb \* 1024)"
     if [ ${max_mem_cgroup:-0} != -1 ] && [ ${max_mem_cgroup:-0} -lt ${max_mem_meminfo:-0} ]
     then
       echo "${max_mem_cgroup}"
+    fi
+  else
+    # it may be Cgroups v2
+    local cg2_mount_point="$(cat /proc/mounts | grep cgroup2 | awk '{ print $2 }')"
+    if [ -n "${cg2_mount_point}" -a -r /proc/self/cgroup ]; then
+      # /proc/self/cgroup may give e.g., "0::/user.slice/.../app.slice/xxx.scope"
+      local cg2_path="$(cut -d ':' -f3- /proc/self/cgroup)"
+      mem_file="${cg2_mount_point}${cg2_path}/memory.max"
+      if [ -r "${mem_file}" ]; then
+        local max_mem_cgroup="$(cat ${mem_file})"
+        if [ -z "${max_mem_cgroup}" -o "max" = "${max_mem_cgroup}" ]; then
+          echo "${max_mem_meminfo}"
+        else
+          echo "${max_mem_cgroup}"
+        fi
+      fi
     fi
   fi
 }
@@ -254,7 +286,7 @@ run_java_options() {
 
 debug_options() {
   if [ -n "${JAVA_ENABLE_DEBUG:-}" ] || [ -n "${JAVA_DEBUG_ENABLE:-}" ] ||  [ -n "${JAVA_DEBUG:-}" ]; then
-	  local debug_port="${JAVA_DEBUG_PORT:-5005}"
+    local debug_port="${JAVA_DEBUG_PORT:-5005}"
     local suspend_mode="n"
     if [ -n "${JAVA_DEBUG_SUSPEND:-}" ]; then
       if ! echo "${JAVA_DEBUG_SUSPEND}" | grep -q -e '^\(false\|n\|no\|0\)$'; then
